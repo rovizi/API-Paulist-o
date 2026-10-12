@@ -26,9 +26,8 @@ class ESPNPublicService:
         for idx, evento in enumerate(eventos_espn):
             competicao = evento.get("competitions", [{}])[0]
             status_obj = evento.get("status", {}).get("type", {})
-            status_sigla = status_obj.get("state", "pre") # pre, in, post
+            status_sigla = status_obj.get("state", "pre")
             
-            # Mapeamento de status para o seu padrão
             if status_sigla == "pre":
                 status = "NS"
                 status_desc = "Agendado"
@@ -49,7 +48,6 @@ class ESPNPublicService:
                 else:
                     visitante_info = c
 
-            # Extração dos dados e escudos
             partida = {
                 "id_partida": str(evento.get("id", idx + 1)),
                 "rodada": 1,
