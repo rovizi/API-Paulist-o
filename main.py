@@ -14,13 +14,13 @@ app = FastAPI(
 
 @app.get("/api/v1/paulistao/partidas")
 async def listar_partidas(rodada: int = 1) -> Union[List[PartidaResponse], Dict[str, Any]]:
-    """Retorna os confrontos da rodada ou a mensagem de espera caso a tabela oficial ainda não esteja disponível."""
+    """Retorna os confrontos da rodada ou o status de espera caso a tabela oficial ainda não esteja disponível."""
     partidas = await ESPNPublicService.obter_partidas_formatadas()
     
-    # Se a lista estiver vazia, retorna apenas a mensagem e as partidas
+    # Se a lista estiver vazia (aguardando divulgação da FPF), retorna o status com a frase configurada
     if not partidas:
         return {
-            "mensagem": "Aguardando dados do Paulistão 2027",
+            "status": "Aguardando dados do Paulistão 2027",
             "partidas": []
         }
         
@@ -36,7 +36,6 @@ async def obter_tabela():
 async def monitorar_tempo_real(background_tasks: BackgroundTasks):
     """Ativa o monitoramento automático de todas as partidas ativas da rodada sem precisar de ID."""
     async def varredura_background():
-        # Executa a checagem em segundo plano de forma totalmente automatizada
         pass
 
     background_tasks.add_task(varredura_background)
