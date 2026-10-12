@@ -17,10 +17,10 @@ async def listar_partidas(rodada: int = 1) -> Union[List[PartidaResponse], Dict[
     """Retorna os confrontos da rodada ou a mensagem de espera caso a tabela oficial ainda não esteja disponível."""
     partidas = await ESPNPublicService.obter_partidas_formatadas()
     
-    # Se a lista estiver vazia, retorna a mensagem de espera da Live Go
+    # Se a lista estiver vazia (aguardando divulgação da FPF), retorna a mensagem e o status em português
     if not partidas:
         return {
-            "status": "standby",
+            "status": "em_espera",
             "mensagem": "Aguardando dados do Paulistão 2027",
             "partidas": []
         }
