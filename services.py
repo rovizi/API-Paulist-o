@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 from config import settings
 
 class ESPNPublicService:
-    """Faz as requisições diretas na API pública e aberta da ESPN."""
+    """Faz as requisições diretas na API pública da ESPN."""
 
     @staticmethod
     async def buscar_dados_espn() -> Dict[str, Any]:
@@ -21,8 +21,48 @@ class ESPNPublicService:
         dados = await cls.buscar_dados_espn()
         eventos_espn = dados.get("events", [])
         
+        # Modo de Espera / Fallback: Se não houver jogos ao vivo na ESPN,
+        # retorna a tabela com os confrontos pré-definidos para o início do campeonato.
+        if not eventos_espn:
+            return [
+                {
+                    "id_partida": "101",
+                    "rodada": 1,
+                    "status": "NS",
+                    "status_descricao": "Agendado / Aguardando Início",
+                    "data_hora": "2027-01-17T16:00:00Z",
+                    "estadio": "Morumbi",
+                    "mandante": "São Paulo",
+                    "escudo_mandante": "https://a.espncdn.com/i/teamlogos/soccer/500/2033.png",
+                    "visitante": "Corinthians",
+                    "escudo_visitante": "https://a.espncdn.com/i/teamlogos/soccer/500/872.png",
+                    "placar_mandante": 0,
+                    "placar_visitante": 0,
+                    "acrescimo_1t": None,
+                    "acrescimo_2t": None,
+                    "eventos": []
+                },
+                {
+                    "id_partida": "102",
+                    "rodada": 1,
+                    "status": "NS",
+                    "status_descricao": "Agendado / Aguardando Início",
+                    "data_hora": "2027-01-17T18:30:00Z",
+                    "estadio": "Allianz Parque",
+                    "mandante": "Palmeiras",
+                    "escudo_mandante": "https://a.espncdn.com/i/teamlogos/soccer/500/2026.png",
+                    "visitante": "Santos",
+                    "escudo_visitante": "https://a.espncdn.com/i/teamlogos/soccer/500/2045.png",
+                    "placar_mandante": 0,
+                    "placar_visitante": 0,
+                    "acrescimo_1t": None,
+                    "acrescimo_2t": None,
+                    "eventos": []
+                }
+            ]
+
+        # Caso a ESPN retorne dados reais (quando o campeonato estiver rolando)
         partidas_processadas = []
-        
         for idx, evento in enumerate(eventos_espn):
             competicao = evento.get("competitions", [{}])[0]
             status_obj = evento.get("status", {}).get("type", {})
@@ -70,7 +110,7 @@ class ESPNPublicService:
         return partidas_processadas
 
 class TabelaManager:
-    """Calcula a classificação e aplica a regra visual de rebaixamento (vermelho)."""
+    """Calcula a classificação e aplica o destaque na zona de rebaixamento."""
 
     @staticmethod
     def processar_rebaixamento(tabela_crua: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
