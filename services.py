@@ -26,21 +26,19 @@ class ESPNPublicService:
 
     @classmethod
     def buscar_escudo_customizado(cls, nome_time: str, escudo_original: str = "") -> str:
-        """Compara o nome do time com o dicionário e injeta o escudo personalizado."""
+        """Busca o escudo customizado com base no nome do time."""
         if not nome_time:
             return escudo_original
             
         nome_clean = nome_time.lower().strip()
-        
         for chave, url_escudo in ESCUDOS_TIMES.items():
             if chave in nome_clean:
                 return url_escudo
-                
         return escudo_original
 
     @classmethod
-    async def obter_partidas_formatadas(cls) -> List[Dict[str, Any]]:
-        """Busca os confrontos reais da ESPN e substitui os escudos pelos customizados."""
+    async def obter_partidas_formatadas(cls, rodada: int = 1) -> List[Dict[str, Any]]:
+        """Busca os confrontos na ESPN e os formata exatamente de acordo com o PartidaResponse."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(cls.URL_API_ESPN)
@@ -56,7 +54,7 @@ class ESPNPublicService:
 
                 partidas_formatadas = []
                 
-                for event in events:
+                for index, event in enumerate(events, start=1):
                     competition = event.get("competitions", [{}])[0]
                     competitors = competition.get("competitors", [])
                     
@@ -72,25 +70,26 @@ class ESPNPublicService:
                     nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
                     escudo_visitante_espn = visitante.get("team", {}).get("logo", "")
                     
-                    # Substitui automaticamente pelos escudos customizados
+                    # Substitui pelos escudos personalizados
                     escudo_casa = cls.buscar_escudo_customizado(nome_casa, escudo_casa_espn)
                     escudo_visitante = cls.buscar_escudo_customizado(nome_visitante, escudo_visitante_espn)
 
                     partida_info = {
-                        "id": event.get("id"),
-                        "data": event.get("date"),
-                        "status": event.get("status", {}).get("type", {}).get("description", ""),
-                        "time_casa": {
-                            "nome": nome_casa,
-                            "escudo": escudo_casa,
-                            "placar": casa.get("score", "0")
-                        },
-                        "time_visitante": {
-                            "nome": nome_visitante,
-                            "escudo": escudo_visitante,
-                            "placar": visitante.get("score", "0")
-                        },
-                        "estadio": competition.get("venue", {}).get("fullName", "Local a definir")
+                        "id_partida": str(event.get("id", f"espn-{index}")),
+                        "rodada": rodada,
+                        "status": event.get("status", {}).get("type", {}).get("state", "pre"),
+                        "status_descricao": event.get("status", {}).get("type", {}).get("description", "Agendado"),
+                        "data_hora": event.get("date", "2027-01-20T19:30:00Z"),
+                        "estadio": competition.get("venue", {}).get("fullName", "Local a definir"),
+                        "mandante": nome_casa,
+                        "escudo_mandante": escudo_casa,
+                        "visitante": nome_visitante,
+                        "escudo_visitante": escudo_visitante,
+                        "placar_mandante": int(casa.get("score", 0)),
+                        "placar_visitante": int(visitante.get("score", 0)),
+                        "acrescimo_1t": None,
+                        "acrescimo_2t": None,
+                        "eventos": []
                     }
                     
                     partidas_formatadas.append(partida_info)
@@ -102,8 +101,8 @@ class ESPNPublicService:
             return []
 
     @classmethod
-    async def obter_partidas_teste(cls) -> List[Dict[str, Any]]:
-        """Gera 8 confrontos de simulação garantindo os 16 escudos customizados."""
+    async def obter_partidas_teste(cls, rodada: int = 1) -> List[Dict[str, Any]]:
+        """Gera 8 confrontos de teste validando rigorosamente o modelo PartidaResponse."""
         confrontos_mock = [
             ("Santos", "Corinthians", "Vila Belmiro"),
             ("São Paulo", "Portuguesa", "MorumBIS"),
@@ -118,20 +117,21 @@ class ESPNPublicService:
         partidas_teste = []
         for index, (mandante, visitante, estadio) in enumerate(confrontos_mock, start=1):
             partidas_teste.append({
-                "id": f"teste-{index}",
-                "data": "2027-01-20T19:30:00Z",
-                "status": "Agendado (Simulação)",
-                "time_casa": {
-                    "nome": mandante,
-                    "escudo": cls.buscar_escudo_customizado(mandante),
-                    "placar": "0"
-                },
-                "time_visitante": {
-                    "nome": visitante,
-                    "escudo": cls.buscar_escudo_customizado(visitante),
-                    "placar": "0"
-                },
-                "estadio": estadio
+                "id_partida": f"teste-{index}",
+                "rodada": rodada,
+                "status": "NS",
+                "status_descricao": "Agendado (Simulação)",
+                "data_hora": "2027-01-20T19:30:00Z",
+                "estadio": estadio,
+                "mandante": mandante,
+                "escudo_mandante": cls.buscar_escudo_customizado(mandante),
+                "visitante": visitante,
+                "escudo_visitante": cls.buscar_escudo_customizado(visitante),
+                "placar_mandante": 0,
+                "placar_visitante": 0,
+                "acrescimo_1t": None,
+                "acrescimo_2t": None,
+                "eventos": []
             })
 
         return partidas_teste
