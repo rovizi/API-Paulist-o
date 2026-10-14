@@ -2,12 +2,15 @@ import httpx
 from typing import List, Dict, Any
 
 class ESPNPublicService:
-    # URL base da API pública da ESPN para o futebol brasileiro / estadual
+    # Endpoint da ESPN para futebol brasileiro / estadual
     URL_API_ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/scoreboard"
+
+    # Link oficial do escudo da Portuguesa de Desportos
+    ESCUDO_PORTUGUESA = "https://a.espncdn.com/i/teamlogos/soccer/500/3468.png"
 
     @classmethod
     async def obter_partidas_formatadas(cls) -> List[Dict[str, Any]]:
-        """Busca os dados na ESPN, formata as informações e aplica correção nos escudos quando necessário."""
+        """Busca os confrontos na ESPN e corrige o escudo da Portuguesa automaticamente."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(cls.URL_API_ESPN)
@@ -30,21 +33,21 @@ class ESPNPublicService:
                     if len(competitors) < 2:
                         continue
                         
-                    # Identifica mandante e visitante
+                    # Organiza mandante e visitante
                     casa = competitors[0] if competitors[0].get("homeAway") == "home" else competitors[1]
                     visitante = competitors[1] if competitors[1].get("homeAway") == "away" else competitors[0]
                     
-                    nome_casa = casa.get("team", {}.get("displayName", "Mandante"))
-                    escudo_casa = casa.get("team", {}.get("logo", ""))
+                    nome_casa = casa.get("team", {}).get("displayName", "Mandante")
+                    escudo_casa = casa.get("team", {}).get("logo", "")
                     
-                    nome_visitante = visitante.get("team", {}.get("displayName", "Visitante"))
-                    escudo_visitante = visitante.get("team", {}.get("logo", ""))
+                    nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
+                    escudo_visitante = visitante.get("team", {}).get("logo", "")
                     
-                    # Correção de segurança para o escudo da Portuguesa caso a ESPN traga desatualizado ou genérico
+                    # CORREÇÃO: Força o escudo oficial da Portuguesa se for o time da casa ou visitante
                     if "portuguesa" in nome_casa.lower():
-                        escudo_casa = "https://a.espncdn.com/i/teamlogos/soccer/500/3468.png"
+                        escudo_casa = cls.ESCUDO_PORTUGUESA
                     if "portuguesa" in nome_visitante.lower():
-                        escudo_visitante = "https://a.espncdn.com/i/teamlogos/soccer/500/3468.png"
+                        escudo_visitante = cls.ESCUDO_PORTUGUESA
 
                     partida_info = {
                         "id": event.get("id"),
@@ -74,5 +77,4 @@ class ESPNPublicService:
 class TabelaManager:
     @staticmethod
     def processar_rebaixamento(tabela: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Gerencia a lógica de classificação e alerta de rebaixamento."""
         return tabela
