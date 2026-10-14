@@ -1,7 +1,7 @@
 import httpx
 from typing import List, Dict, Any
 
-# Dicionário oficial com os 16 escudos personalizados do Paulistão 2027
+# Dicionário oficial com os 16 escudos personalizados do Paulistão
 ESCUDOS_TIMES = {
     "santos": "https://i.postimg.cc/Kc7HXvBx/fundo-2-removebg-preview.png",
     "são paulo": "https://i.postimg.cc/xd6JWm5v/7c6a9424c83ef60a76a84b7682c2663a-removebg-preview.png",
@@ -22,26 +22,31 @@ ESCUDOS_TIMES = {
 }
 
 class ESPNPublicService:
+    # Endpoint oficial do Scoreboard de Futebol Brasileiro / Paulista na ESPN
     URL_API_ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/scoreboard"
 
     @classmethod
     def buscar_escudo_customizado(cls, nome_time: str, escudo_original: str = "") -> str:
-        """Busca o escudo customizado com base no nome do time."""
+        """Busca o escudo customizado com base no nome retornado pela ESPN."""
         if not nome_time:
             return escudo_original
             
         nome_clean = nome_time.lower().strip()
+        
         for chave, url_escudo in ESCUDOS_TIMES.items():
             if chave in nome_clean:
                 return url_escudo
+                
+        # Se o time não estiver na nossa lista de 16, mantém o escudo original enviado pela ESPN
         return escudo_original
 
     @classmethod
     async def obter_partidas_formatadas(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Busca os confrontos na ESPN e os formata exatamente de acordo com o PartidaResponse."""
+        """Busca partidas oficiais ao vivo na API da ESPN e aplica os escudos customizados."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(cls.URL_API_ESPN)
+                params = {"week": rodada} if rodada else {}
+                response = await client.get(cls.URL_API_ESPN, params=params)
                 
                 if response.status_code != 200:
                     return []
@@ -55,12 +60,17 @@ class ESPNPublicService:
                 partidas_formatadas = []
                 
                 for index, event in enumerate(events, start=1):
-                    competition = event.get("competitions", [{}])[0]
+                    competitions = event.get("competitions", [])
+                    if not competitions:
+                        continue
+                        
+                    competition = competitions[0]
                     competitors = competition.get("competitors", [])
                     
                     if len(competitors) < 2:
                         continue
                         
+                    # Identifica mandante e visitante do feed oficial
                     casa = competitors[0] if competitors[0].get("homeAway") == "home" else competitors[1]
                     visitante = competitors[1] if competitors[1].get("homeAway") == "away" else competitors[0]
                     
@@ -70,23 +80,34 @@ class ESPNPublicService:
                     nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
                     escudo_visitante_espn = visitante.get("team", {}).get("logo", "")
                     
-                    # Substitui pelos escudos personalizados
+                    # INJEÇÃO DOS NOSSOS ESCUDOS CUSTOMIZADOS NOS DADOS OFICIAIS
                     escudo_casa = cls.buscar_escudo_customizado(nome_casa, escudo_casa_espn)
                     escudo_visitante = cls.buscar_escudo_customizado(nome_visitante, escudo_visitante_espn)
+
+                    # Mapeia o status oficial da partida
+                    status_info = event.get("status", {}).get("type", {})
+                    state = status_info.get("state", "pre")
+                    
+                    if state == "in":
+                        status_code = "LIVE"
+                    elif state == "post":
+                        status_code = "FT"
+                    else:
+                        status_code = "NS"
 
                     partida_info = {
                         "id_partida": str(event.get("id", f"espn-{index}")),
                         "rodada": rodada,
-                        "status": event.get("status", {}).get("type", {}).get("state", "pre"),
-                        "status_descricao": event.get("status", {}).get("type", {}).get("description", "Agendado"),
-                        "data_hora": event.get("date", "2027-01-20T19:30:00Z"),
+                        "status": status_code,
+                        "status_descricao": status_info.get("description", "Agendado"),
+                        "data_hora": event.get("date", ""),
                         "estadio": competition.get("venue", {}).get("fullName", "Local a definir"),
                         "mandante": nome_casa,
                         "escudo_mandante": escudo_casa,
                         "visitante": nome_visitante,
                         "escudo_visitante": escudo_visitante,
-                        "placar_mandante": int(casa.get("score", 0)),
-                        "placar_visitante": int(visitante.get("score", 0)),
+                        "placar_mandante": int(casa.get("score", 0)) if casa.get("score") else 0,
+                        "placar_visitante": int(visitante.get("score", 0)) if visitante.get("score") else 0,
                         "acrescimo_1t": None,
                         "acrescimo_2t": None,
                         "eventos": []
@@ -97,12 +118,12 @@ class ESPNPublicService:
                 return partidas_formatadas
                 
         except Exception as e:
-            print(f"Erro ao buscar dados da ESPN: {e}")
+            print(f"Erro ao conectar com a API da ESPN: {e}")
             return []
 
     @classmethod
     async def obter_partidas_teste(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Gera 8 confrontos de teste validando rigorosamente o modelo PartidaResponse."""
+        """Gera confrontos simulados caso a temporada oficial ainda não tenha começado."""
         confrontos_mock = [
             ("Santos", "Corinthians", "Vila Belmiro"),
             ("São Paulo", "Portuguesa", "MorumBIS"),
