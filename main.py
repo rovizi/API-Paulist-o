@@ -13,28 +13,20 @@ app = FastAPI(
 )
 
 @app.get("/api/v1/paulistao/partidas")
-async def listar_partidas(rodada: int = 1) -> Union[List[PartidaResponse], Dict[str, Any]]:
-    """Retorna os confrontos da rodada ou o status de espera caso a tabela oficial ainda não esteja disponível."""
+async def listar_partidas(rodada: int = 1):
+    """Busca dados reais da ESPN e injeta os escudos customizados. Se falhar, entrega os testes simulados."""
     partidas = await ESPNPublicService.obter_partidas_formatadas()
     
-    # Se a lista estiver vazia (aguardando divulgação da FPF), retorna o status com a frase configurada
+    # Se a ESPN não retornar dados (ex: fora de temporada), entrega a simulação com os 16 escudos garantidos
     if not partidas:
-        return {
-            "status": "Aguardando dados do Paulistão 2027",
-            "partidas": []
-        }
+        return await ESPNPublicService.obter_partidas_teste()
         
     return partidas
 
 @app.get("/api/v1/paulistao/partidas/teste")
 async def listar_partidas_teste():
-    """Rota de teste para validar a exibição de todos os 16 escudos personalizados nos confrontos."""
-    partidas_teste = await ESPNPublicService.obter_partidas_teste()
-    return {
-        "status": "sucesso",
-        "total_partidas": len(partidas_teste),
-        "partidas": partidas_teste
-    }
+    """Rota dedicada de teste para validar os 16 escudos personalizados nos confrontos simulados."""
+    return await ESPNPublicService.obter_partidas_teste()
 
 @app.get("/api/v1/paulistao/classificacao", response_model=List[TabelaPosicao])
 async def obter_tabela():
