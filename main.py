@@ -26,6 +26,16 @@ async def listar_partidas(rodada: int = 1) -> Union[List[PartidaResponse], Dict[
         
     return partidas
 
+@app.get("/api/v1/paulistao/partidas/teste")
+async def listar_partidas_teste():
+    """Rota de teste para validar a exibição de todos os 16 escudos personalizados nos confrontos."""
+    partidas_teste = await ESPNPublicService.obter_partidas_teste()
+    return {
+        "status": "sucesso",
+        "total_partidas": len(partidas_teste),
+        "partidas": partidas_teste
+    }
+
 @app.get("/api/v1/paulistao/classificacao", response_model=List[TabelaPosicao])
 async def obter_tabela():
     """Retorna a tabela de classificação com alerta automático em vermelho no rebaixamento."""
