@@ -22,12 +22,14 @@ ESCUDOS_TIMES = {
 }
 
 class ESPNPublicService:
-    # Endpoint da ESPN para o futebol brasileiro / estadual
     URL_API_ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/scoreboard"
 
     @classmethod
     def buscar_escudo_customizado(cls, nome_time: str, escudo_original: str = "") -> str:
-        """Busca o escudo customizado com base no nome do time de forma flexível."""
+        """Compara o nome do time da ESPN com o dicionário e injeta o escudo personalizado."""
+        if not nome_time:
+            return escudo_original
+            
         nome_clean = nome_time.lower().strip()
         
         for chave, url_escudo in ESCUDOS_TIMES.items():
@@ -38,7 +40,7 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_formatadas(cls) -> List[Dict[str, Any]]:
-        """Busca os confrontos na ESPN e substitui os escudos padrão pelos customizados."""
+        """Busca os confrontos reais da ESPN e substitui os escudos pelos customizados."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(cls.URL_API_ESPN)
@@ -61,7 +63,6 @@ class ESPNPublicService:
                     if len(competitors) < 2:
                         continue
                         
-                    # Identifica mandante e visitante
                     casa = competitors[0] if competitors[0].get("homeAway") == "home" else competitors[1]
                     visitante = competitors[1] if competitors[1].get("homeAway") == "away" else competitors[0]
                     
@@ -71,7 +72,7 @@ class ESPNPublicService:
                     nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
                     escudo_visitante_espn = visitante.get("team", {}).get("logo", "")
                     
-                    # Substitui automaticamente pelos escudos customizados
+                    # APLICANDO OS SEUS ESCUDOS PERSONALIZADOS NOS DADOS REAIS DA ESPN
                     escudo_casa = cls.buscar_escudo_customizado(nome_casa, escudo_casa_espn)
                     escudo_visitante = cls.buscar_escudo_customizado(nome_visitante, escudo_visitante_espn)
 
@@ -102,7 +103,7 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_teste(cls) -> List[Dict[str, Any]]:
-        """Gera 8 confrontos de teste cobrindo 100% dos 16 times com escudos customizados."""
+        """Gera 8 confrontos de simulação para testar os 16 escudos customizados."""
         confrontos_mock = [
             ("Santos", "Corinthians", "Vila Belmiro"),
             ("São Paulo", "Portuguesa", "MorumBIS"),
