@@ -1,19 +1,19 @@
 import httpx
 from typing import List, Dict, Any
 
-class ESPNPublicService:
-    # Endpoint da ESPN para futebol brasileiro / estadual
-    URL_API_ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/scoreboard"
-
-    # Link oficial do escudo da Portuguesa de Desportos
+class RealFootballService:
+    # Endpoint público alternativo para dados reais do Paulistão
+    URL_API_REAL = "https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4393"
+    
+    # Link oficial garantido do escudo da Portuguesa de Desportos
     ESCUDO_PORTUGUESA = "https://a.espncdn.com/i/teamlogos/soccer/500/3468.png"
 
     @classmethod
     async def obter_partidas_formatadas(cls) -> List[Dict[str, Any]]:
-        """Busca os confrontos na ESPN e corrige o escudo da Portuguesa automaticamente."""
+        """Busca dados reais e públicos de partidas de futebol."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(cls.URL_API_ESPN)
+                response = await client.get(cls.URL_API_REAL)
                 
                 if response.status_code != 200:
                     return []
@@ -27,43 +27,33 @@ class ESPNPublicService:
                 partidas_formatadas = []
                 
                 for event in events:
-                    competition = event.get("competitions", [{}])[0]
-                    competitors = competition.get("competitors", [])
+                    nome_casa = event.get("strHomeTeam", "Mandante")
+                    nome_visitante = event.get("strAwayTeam", "Visitante")
                     
-                    if len(competitors) < 2:
-                        continue
-                        
-                    # Organiza mandante e visitante
-                    casa = competitors[0] if competitors[0].get("homeAway") == "home" else competitors[1]
-                    visitante = competitors[1] if competitors[1].get("homeAway") == "away" else competitors[0]
+                    escudo_casa = event.get("strHomeTeamBadge", "")
+                    escudo_visitante = event.get("strAwayTeamBadge", "")
                     
-                    nome_casa = casa.get("team", {}).get("displayName", "Mandante")
-                    escudo_casa = casa.get("team", {}).get("logo", "")
-                    
-                    nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
-                    escudo_visitante = visitante.get("team", {}).get("logo", "")
-                    
-                    # CORREÇÃO: Força o escudo oficial da Portuguesa se for o time da casa ou visitante
+                    # Correção garantida do escudo da Portuguesa
                     if "portuguesa" in nome_casa.lower():
                         escudo_casa = cls.ESCUDO_PORTUGUESA
                     if "portuguesa" in nome_visitante.lower():
                         escudo_visitante = cls.ESCUDO_PORTUGUESA
 
                     partida_info = {
-                        "id": event.get("id"),
-                        "data": event.get("date"),
-                        "status": event.get("status", {}).get("type", {}).get("description", ""),
+                        "id": event.get("idEvent"),
+                        "data": event.get("dateEvent"),
+                        "status": event.get("strStatus", "Agendado"),
                         "time_casa": {
                             "nome": nome_casa,
                             "escudo": escudo_casa,
-                            "placar": casa.get("score", "0")
+                            "placar": event.get("intHomeScore") or "0"
                         },
                         "time_visitante": {
                             "nome": nome_visitante,
                             "escudo": escudo_visitante,
-                            "placar": visitante.get("score", "0")
+                            "placar": event.get("intAwayScore") or "0"
                         },
-                        "estadio": competition.get("venue", {}).get("fullName", "Local a definir")
+                        "estadio": event.get("strVenue", "Estádio Municipal")
                     }
                     
                     partidas_formatadas.append(partida_info)
@@ -71,10 +61,15 @@ class ESPNPublicService:
                 return partidas_formatadas
                 
         except Exception as e:
-            print(f"Erro ao buscar dados da ESPN: {e}")
+            print(f"Erro ao buscar dados reais: {e}")
             return []
 
 class TabelaManager:
     @staticmethod
     def processar_rebaixamento(tabela: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return tabela
+
+class ESPNPublicService:
+    @classmethod
+    async def obter_partidas_formatadas(cls):
+        return await RealFootballService.obter_partidas_formatadas()
