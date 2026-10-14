@@ -14,10 +14,9 @@ app = FastAPI(
 
 @app.get("/api/v1/paulistao/partidas")
 async def listar_partidas(rodada: int = 1):
-    """Busca dados reais da ESPN e injeta os escudos customizados. Se falhar, entrega os testes simulados."""
+    """Busca dados da ESPN injetando os escudos customizados. Se falhar, retorna a simulação com os 16 times."""
     partidas = await ESPNPublicService.obter_partidas_formatadas()
     
-    # Se a ESPN não retornar dados (ex: fora de temporada), entrega a simulação com os 16 escudos garantidos
     if not partidas:
         return await ESPNPublicService.obter_partidas_teste()
         
@@ -25,7 +24,7 @@ async def listar_partidas(rodada: int = 1):
 
 @app.get("/api/v1/paulistao/partidas/teste")
 async def listar_partidas_teste():
-    """Rota dedicada de teste para validar os 16 escudos personalizados nos confrontos simulados."""
+    """Rota dedicada para validar a exibição de todos os 16 escudos personalizados."""
     return await ESPNPublicService.obter_partidas_teste()
 
 @app.get("/api/v1/paulistao/classificacao", response_model=List[TabelaPosicao])
