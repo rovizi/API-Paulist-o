@@ -1,3 +1,4 @@
+
 import httpx
 from typing import List, Dict, Any
 
@@ -28,7 +29,7 @@ ESCUDOS_TIMES = {
     "bragantino": "https://i.postimg.cc/xdJpg87w/51293636497-d1e335da5a-o-1024x698-removebg-preview.png"
 }
 
-# Lista restrita de times removidos da Série A (Incluindo o Ituano)
+# Lista restrita de times removidos da Série A (Incluindo Ponte Preta, Velo Clube, Água Santa, Inter de Limeira e Ituano)
 TIMES_REMOVIDOS = ["ponte preta", "velo clube", "água santa", "inter de limeira", "ituano"]
 
 class ESPNPublicService:
@@ -129,7 +130,7 @@ class TabelaManager:
     def formatar_tabela_classificacao(cls, tabela_raw: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Formata a tabela:
-        1. Remove os times banidos (Ponte Preta, Velo Clube, Água Santa, Inter de Limeira e Ituano).
+        1. Remove os times banidos.
         2. Aplica as novas logos douradas e prateada.
         3. Mantém todas as estatísticas zeradas.
         """
@@ -140,10 +141,10 @@ class TabelaManager:
             nome_time = item.get("time", item.get("nome", ""))
             
             # Remove se estiver na lista de banidos
-            if ESPNPublicService.deve_remover_time(nome_time):
+            if cls.deve_remover_time(nome_time):
                 continue
             
-            escudo = ESPNPublicService.buscar_escudo_customizado(nome_time, item.get("escudo", ""))
+            escudo = cls.buscar_escudo_customizado(nome_time, item.get("escudo", ""))
 
             if not cls.CAMPEONATO_INICIADO:
                 pontos, jogos, vitorias, empates, derrotas = 0, 0, 0, 0, 0
