@@ -9,7 +9,7 @@ ESCUDOS_TIMES = {
     "portuguesa": "https://i.postimg.cc/MTM4n0gb/Gemini-Generated-Image-vtv2kgvtv2kgvtv2-removebg-preview.png",
     "são bernardo": "https://i.postimg.cc/G3NLgqc4/logo-removebg-preview-(1).png",
     
-    # Demais clubes mantidos com as URLs padrão anteriores
+    # Demais clubes mantidos com as URLs padrão
     "santos": "https://i.postimg.cc/Kc7HXvBx/fundo-2-removebg-preview.png",
     "palmeiras": "https://i.postimg.cc/VkdVSxZH/D-NQ-NP-783305-MLB110188064885-042026-O-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-rem.png",
     "juventus": "https://i.postimg.cc/L4fr9FYy/images.jpg",
@@ -40,7 +40,7 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_formatadas(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Busca confrontos na ESPN e os formata exatamente de acordo com o PartidaResponse."""
+        """Busca confrontos em tempo real da API oficial da ESPN e formata os dados."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(cls.URL_API_ESPN)
@@ -55,6 +55,17 @@ class ESPNPublicService:
                     return []
 
                 partidas_formatadas = []
+                
+                # Mapeamento oficial de status da ESPN para Português
+                TRADUCAO_STATUS = {
+                    "STATUS_SCHEDULED": "Aguardando início",
+                    "STATUS_FIRST_HALF": "1º Tempo",
+                    "STATUS_HALFTIME": "Intervalo",
+                    "STATUS_SECOND_HALF": "2º Tempo",
+                    "STATUS_FINAL": "Encerrado",
+                    "STATUS_POSTPONED": "Adiado",
+                    "STATUS_CANCELED": "Cancelado"
+                }
                 
                 for index, event in enumerate(events, start=1):
                     competition = event.get("competitions", [{}])[0]
@@ -75,11 +86,16 @@ class ESPNPublicService:
                     escudo_casa = cls.buscar_escudo_customizado(nome_casa, escudo_casa_espn)
                     escudo_visitante = cls.buscar_escudo_customizado(nome_visitante, escudo_visitante_espn)
 
+                    # Obtém e traduz o status real retornado pela ESPN
+                    status_type = event.get("status", {}).get("type", {})
+                    status_name = status_type.get("name", "")
+                    status_descricao = TRADUCAO_STATUS.get(status_name, "Aguardando início")
+
                     partida_info = {
                         "id_partida": str(event.get("id", f"espn-{index}")),
                         "rodada": rodada,
-                        "status": event.get("status", {}).get("type", {}).get("state", "pre"),
-                        "status_descricao": event.get("status", {}).get("type", {}).get("description", "Agendado"),
+                        "status": status_type.get("state", "pre"),
+                        "status_descricao": status_descricao,
                         "data_hora": event.get("date", ""),
                         "estadio": competition.get("venue", {}).get("fullName", "Local a definir"),
                         "mandante": nome_casa,
@@ -103,7 +119,7 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_teste(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Gera 8 confrontos de teste validando rigorosamente o modelo PartidaResponse."""
+        """Gera confrontos de teste apenas como fallback de contingência."""
         confrontos_mock = [
             ("Santos", "Corinthians", "Vila Belmiro"),
             ("São Paulo", "Portuguesa", "MorumBIS"),
@@ -121,7 +137,7 @@ class ESPNPublicService:
                 "id_partida": f"teste-{index}",
                 "rodada": rodada,
                 "status": "NS",
-                "status_descricao": "Agendado (Simulação)",
+                "status_descricao": "Aguardando início",
                 "data_hora": "2027-01-20T19:30:00Z",
                 "estadio": estadio,
                 "mandante": mandante,
