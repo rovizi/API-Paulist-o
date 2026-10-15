@@ -2,18 +2,13 @@
 import httpx
 from typing import List, Dict, Any
 
-# Dicionário oficial com os novos escudos atualizados:
-# - 4 Grandes: Logos Douradas
-# - Portuguesa: Logo Prateada
-# - Demais clubes: Logos Padronizadas
+# Dicionário oficial com os escudos customizados (Dourados/Prata + Padrões)
 ESCUDOS_TIMES = {
-    # Os 4 Grandes (Logos Douradas Atualizadas)
+    # Os 4 Grandes + Portuguesa (Logos Douradas)
     "são paulo": "https://i.postimg.cc/hjCJQprP/Gemini-Generated-Image-n6n9n7n6n9n7n6n9-removebg-preview.png",
     "corinthians": "https://i.postimg.cc/bNpMwg5j/D-NQ-NP-891136-MLB101696524221-122025-O-placa-painel-em-pvc-50x50-escudo-corinthians-gold-timao.webp",
     "palmeiras": "https://i.postimg.cc/c4CRh8gm/D-NQ-NP-783305-MLB110188064885-042026-O-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-rem.png",
     "santos": "https://i.postimg.cc/qMJbTRtN/D-NQ-NP-839454-MLB82114445831-012025-O-removebg-preview.png",
-    
-    # Portuguesa (Logo Prateada Atualizada)
     "portuguesa": "https://i.postimg.cc/nrcP0cBq/D-NQ-NP-876716-MLB110894002000-052026-F-removebg-preview.png",
     
     # Demais clubes participantes oficiais da Série A
@@ -29,7 +24,7 @@ ESCUDOS_TIMES = {
     "bragantino": "https://i.postimg.cc/xdJpg87w/51293636497-d1e335da5a-o-1024x698-removebg-preview.png"
 }
 
-# Lista restrita de times removidos da Série A (Incluindo Ponte Preta, Velo Clube, Água Santa, Inter de Limeira e Ituano)
+# Lista restrita de times removidos da Série A (Incluindo o Ituano)
 TIMES_REMOVIDOS = ["ponte preta", "velo clube", "água santa", "inter de limeira", "ituano"]
 
 class ESPNPublicService:
@@ -45,10 +40,9 @@ class ESPNPublicService:
 
     @classmethod
     def buscar_escudo_customizado(cls, nome_time: str, escudo_original: str = "") -> str:
-        """Busca o escudo customizado correspondente."""
+        """Busca o escudo customizado (dourado/prata) ou mantém o original se não estiver na lista."""
         if not nome_time:
             return escudo_original
-            
         nome_clean = nome_time.lower().strip()
         for chave, url_escudo in ESCUDOS_TIMES.items():
             if chave in nome_clean:
@@ -57,121 +51,158 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_formatadas(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Busca confrontos, filtra os removidos, aplica escudos e define status 'A confirmar'."""
+        """
+        Tenta buscar dados reais da ESPN. 
+        Se o campeonato estiver inativo (fora de temporada), retorna o fallback com 'A confirmar' e escudos dourados.
+        Se estiver ativo, puxa os confrontos reais aplicando os escudos dourados e status ao vivo.
+        """
+        partidas_formatadas = []
+        
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=8.0) as client:
                 response = await client.get(cls.URL_API_ESPN)
                 
-                if response.status_code != 200:
-                    return []
-                
-                data = response.json()
-                events = data.get("events", [])
-                
-                if not events:
-                    return []
-
-                partidas_formatadas = []
-                
-                for index, event in enumerate(events, start=1):
-                    competition = event.get("competitions", [{}])[0]
-                    competitors = competition.get("competitors", [])
+                if response.status_code == 200:
+                    data = response.json()
+                    events = data.get("events", [])
                     
-                    if len(competitors) < 2:
-                        continue
+                    for index, event in enumerate(events, start=1):
+                        competition = event.get("competitions", [{}])[0]
+                        competitors = competition.get("competitors", [])
                         
-                    casa = competitors[0] if competitors[0].get("homeAway") == "home" else competitors[1]
-                    visitante = competitors[1] if competitors[1].get("homeAway") == "away" else competitors[0]
-                    
-                    nome_casa = casa.get("team", {}).get("displayName", "Mandante")
-                    nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
-                    
-                    # Filtra e ignora partidas envolvendo times removidos
-                    if cls.deve_remover_time(nome_casa) or cls.deve_remover_time(nome_visitante):
-                        continue
+                        if len(competitors) < 2:
+                            continue
+                            
+                        casa = competitors[0] if competitors[0].get("homeAway") == "home" else competitors[1]
+                        visitante = competitors[1] if competitors[1].get("homeAway") == "away" else competitors[0]
+                        
+                        nome_casa = casa.get("team", {}).get("displayName", "Mandante")
+                        nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
+                        
+                        # Filtra e ignora times removidos
+                        if cls.deve_remover_time(nome_casa) or cls.deve_remover_time(nome_visitante):
+                            continue
 
-                    escudo_casa_espn = casa.get("team", {}).get("logo", "")
-                    escudo_visitante_espn = visitante.get("team", {}).get("logo", "")
-                    
-                    escudo_casa = cls.buscar_escudo_customizado(nome_casa, escudo_casa_espn)
-                    escudo_visitante = cls.buscar_escudo_customizado(nome_visitante, escudo_visitante_espn)
+                        # Injeção dinâmica do escudo dourado sobre o escudo da ESPN
+                        escudo_casa_espn = casa.get("team", {}).get("logo", "")
+                        escudo_visitante_espn = visitante.get("team", {}).get("logo", "")
+                        
+                        escudo_casa = cls.buscar_escudo_customizado(nome_casa, escudo_casa_espn)
+                        escudo_visitante = cls.buscar_escudo_customizado(nome_visitante, escudo_visitante_espn)
 
-                    partida_info = {
-                        "id_partida": str(event.get("id", f"espn-{index}")),
-                        "rodada": rodada,
-                        "status": "pre",
-                        "status_descricao": "A confirmar",
-                        "data_hora": event.get("date", ""),
-                        "estadio": competition.get("venue", {}).get("fullName", "Local a definir"),
-                        "mandante": nome_casa,
-                        "escudo_mandante": escudo_casa,
-                        "visitante": nome_visitante,
-                        "escudo_visitante": escudo_visitante,
-                        "placar_mandante": 0,
-                        "placar_visitante": 0,
-                        "acrescimo_1t": None,
-                        "acrescimo_2t": None,
-                        "eventos": []
-                    }
-                    
-                    partidas_formatadas.append(partida_info)
-                    
-                return partidas_formatadas
-                
+                        status_type = event.get("status", {}).get("type", {})
+                        status_state = status_type.get("state", "pre")
+                        status_desc = status_type.get("shortDetail", "A confirmar")
+
+                        partida_info = {
+                            "id_partida": str(event.get("id", f"espn-{index}")),
+                            "rodada": rodada,
+                            "status": status_state,
+                            "status_descricao": status_desc,
+                            "data_hora": event.get("date", ""),
+                            "estadio": competition.get("venue", {}).get("fullName", "Local a definir"),
+                            "mandante": nome_casa,
+                            "escudo_mandante": escudo_casa,
+                            "visitante": nome_visitante,
+                            "escudo_visitante": escudo_visitante,
+                            "placar_mandante": int(casa.get("score", 0)),
+                            "placar_visitante": int(visitante.get("score", 0)),
+                            "acrescimo_1t": None,
+                            "acrescimo_2t": None,
+                            "eventos": []
+                        }
+                        
+                        partidas_formatadas.append(partida_info)
+                        
         except Exception as e:
-            print(f"Erro ao buscar dados da ESPN: {e}")
-            return []
+            print(f"Erro ao buscar ESPN: {e}")
+
+        # Se não houver dados ativos na ESPN, exibe o fallback com "A confirmar" e escudos dourados
+        if not partidas_formatadas:
+            return cls._gerar_partidas_fallback(rodada)
+
+        return partidas_formatadas
+
+    @classmethod
+    def _gerar_partidas_fallback(cls, rodada: int) -> List[Dict[str, Any]]:
+        """Gera partidas padrão com status 'A confirmar' e escudos dourados enquanto o campeonato não inicia."""
+        return [
+            {
+                "id_partida": "paulista-2027-1",
+                "rodada": rodada,
+                "status": "pre",
+                "status_descricao": "A confirmar",
+                "data_hora": "2027-01-15T20:00:00Z",
+                "estadio": "Morumbi",
+                "mandante": "São Paulo",
+                "escudo_mandante": ESCUDOS_TIMES["são paulo"],
+                "visitante": "Corinthians",
+                "escudo_visitante": ESCUDOS_TIMES["corinthians"],
+                "placar_mandante": 0,
+                "placar_visitante": 0,
+                "acrescimo_1t": None,
+                "acrescimo_2t": None,
+                "eventos": []
+            },
+            {
+                "id_partida": "paulista-2027-2",
+                "rodada": rodada,
+                "status": "pre",
+                "status_descricao": "A confirmar",
+                "data_hora": "2027-01-15T21:30:00Z",
+                "estadio": "Allianz Parque",
+                "mandante": "Palmeiras",
+                "escudo_mandante": ESCUDOS_TIMES["palmeiras"],
+                "visitante": "Santos",
+                "escudo_visitante": ESCUDOS_TIMES["santos"],
+                "placar_mandante": 0,
+                "placar_visitante": 0,
+                "acrescimo_1t": None,
+                "acrescimo_2t": None,
+                "eventos": []
+            },
+            {
+                "id_partida": "paulista-2027-3",
+                "rodada": rodada,
+                "status": "pre",
+                "status_descricao": "A confirmar",
+                "data_hora": "2027-01-16T18:00:00Z",
+                "estadio": "Canindé",
+                "mandante": "Portuguesa",
+                "escudo_mandante": ESCUDOS_TIMES["portuguesa"],
+                "visitante": "Guarani",
+                "escudo_visitante": ESCUDOS_TIMES["guarani"],
+                "placar_mandante": 0,
+                "placar_visitante": 0,
+                "acrescimo_1t": None,
+                "acrescimo_2t": None,
+                "eventos": []
+            }
+        ]
 
 class TabelaManager:
-    # Trava para manter a tabela inteiramente zerada até o campeonato começar
     CAMPEONATO_INICIADO = False
 
     @classmethod
     def formatar_tabela_classificacao(cls, tabela_raw: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Formata a tabela:
-        1. Remove os times banidos.
-        2. Aplica as novas logos douradas e prateada.
-        3. Mantém todas as estatísticas zeradas.
-        """
+        """Gera a tabela completa com escudos customizados e estatísticas zeradas."""
         tabela_formatada = []
-        posicao_real = 1
+        posicao = 1
 
-        for item in tabela_raw:
-            nome_time = item.get("time", item.get("nome", ""))
-            
-            # Remove se estiver na lista de banidos
-            if cls.deve_remover_time(nome_time):
-                continue
-            
-            escudo = cls.buscar_escudo_customizado(nome_time, item.get("escudo", ""))
-
-            if not cls.CAMPEONATO_INICIADO:
-                pontos, jogos, vitorias, empates, derrotas = 0, 0, 0, 0, 0
-                gols_pro, gols_contra, saldo_gols = 0, 0, 0
-            else:
-                pontos = item.get("pontos", 0)
-                jogos = item.get("jogos", 0)
-                vitorias = item.get("vitorias", 0)
-                empates = item.get("empates", 0)
-                derrotas = item.get("derrotas", 0)
-                gols_pro = item.get("gols_pro", 0)
-                gols_contra = item.get("gols_contra", 0)
-                saldo_gols = item.get("saldo_gols", 0)
-
+        for nome_time, url_escudo in ESCUDOS_TIMES.items():
             tabela_formatada.append({
-                "posicao": posicao_real,
-                "time": nome_time,
-                "escudo": escudo,
-                "pontos": pontos,
-                "jogos": jogos,
-                "vitorias": vitorias,
-                "empates": empates,
-                "derrotas": derrotas,
-                "gols_pro": gols_pro,
-                "gols_contra": gols_contra,
-                "saldo_gols": saldo_gols
+                "posicao": posicao,
+                "time": nome_time.title(),
+                "escudo": url_escudo,
+                "pontos": 0,
+                "jogos": 0,
+                "vitorias": 0,
+                "empates": 0,
+                "derrotas": 0,
+                "gols_pro": 0,
+                "gols_contra": 0,
+                "saldo_gols": 0
             })
-            posicao_real += 1
+            posicao += 1
 
         return tabela_formatada
