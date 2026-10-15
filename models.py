@@ -1,40 +1,36 @@
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from services import ESPNPublicService, TabelaManager
 
-class EventoPartida(BaseModel):
-    minuto: int
-    acrescimo: Optional[int] = None
-    tipo: str  # "gol", "cartao_amarelo", "cartao_vermelho", "substituicao"
-    detalhe: str
-    equipe: str
-    jogador: str
+app = FastAPI(title="Paulistão 2027 API", version="1.0.0")
 
-class PartidaResponse(BaseModel):
-    id_partida: str
-    rodada: int
-    status: str  # "NS" (Agendado), "LIVE" (Ao vivo), "HT" (Intervalo), "FT" (Encerrado)
-    status_descricao: str  # "Agendado", "Em andamento", "Intervalo em descanso", "Encerrado"
-    data_hora: str
-    estadio: Optional[str] = None
-    mandante: str
-    escudo_mandante: str
-    visitante: str
-    escudo_visitante: str
-    placar_mandante: int = 0
-    placar_visitante: int = 0
-    acrescimo_1t: Optional[int] = None
-    acrescimo_2t: Optional[int] = None
-    eventos: List[EventoPartida] = []
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class TabelaPosicao(BaseModel):
-    posicao: int
-    clube: str
-    escudo: str
-    pontos: int
-    jogos: int
-    vitorias: int
-    empates: int
-    derrotas: int
-    saldo_gols: int
-    zona: str  # "normal" ou "rebaixamento"
-    cor_destaque: str  # "neutro" ou "vermelho"
+@app.get("/")
+async def root():
+    return {"message": "API do Paulistão 2027 Rodando com Sucesso!"}
+
+@app.get("/api/v1/tabela")
+async def obter_tabela():
+    try:
+        dados_brutos = await ESPNPublicService.obter_partidas_formatadas()
+        tabela_formatada = TabelaManager.formatar_tabela_classificacao(dados_brutos)
+        return tabela_formatada
+    except Exception as e:
+        print(f"Erro ao gerar tabela: {e}")
+        return []
+
+@app.get("/api/v1/partidas")
+async def obter_partidas(rodada: int = 1):
+    try:
+        partidas = await ESPNPublicService.obter_partidas_formatadas(rodada)
+        return partidas
+    except Exception as e:
+        print(f"Erro ao buscar partidas: {e}")
+        return []
