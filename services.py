@@ -1,21 +1,21 @@
 import httpx
 from typing import List, Dict, Any
 
-# Dicionário oficial com os escudos do Paulistão:
+# Dicionário oficial com os novos escudos atualizados:
 # - 4 Grandes: Logos Douradas
 # - Portuguesa: Logo Prateada
 # - Demais clubes: Logos Padronizadas
 ESCUDOS_TIMES = {
-    # Os 4 Grandes (Logos Douradas)
-    "são paulo": "https://i.postimg.cc/RZhBLtHd/Gemini-Generated-Image-w9fhmqw9fhmqw9fh-removebg-preview.png",
-    "corinthians": "https://i.postimg.cc/9FGpggG4/Gemini-Generated-Image-dd6vlvdd6vlvdd6v-removebg-preview.png",
-    "palmeiras": "https://i.postimg.cc/VkdVSxZH/D-NQ-NP-783305-MLB110188064885-042026-O-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-rem.png",
-    "santos": "https://i.postimg.cc/Kc7HXvBx/fundo-2-removebg-preview.png",
+    # Os 4 Grandes (Logos Douradas Atualizadas)
+    "são paulo": "https://i.postimg.cc/hjCJQprP/Gemini-Generated-Image-n6n9n7n6n9n7n6n9-removebg-preview.png",
+    "corinthians": "https://i.postimg.cc/bNpMwg5j/D-NQ-NP-891136-MLB101696524221-122025-O-placa-painel-em-pvc-50x50-escudo-corinthians-gold-timao.webp",
+    "palmeiras": "https://i.postimg.cc/c4CRh8gm/D-NQ-NP-783305-MLB110188064885-042026-O-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-rem.png",
+    "santos": "https://i.postimg.cc/qMJbTRtN/D-NQ-NP-839454-MLB82114445831-012025-O-removebg-preview.png",
     
-    # Portuguesa (Logo Prateada)
-    "portuguesa": "https://i.postimg.cc/MTM4n0gb/Gemini-Generated-Image-vtv2kgvtv2kgvtv2-removebg-preview.png",
+    # Portuguesa (Logo Prateada Atualizada)
+    "portuguesa": "https://i.postimg.cc/nrcP0cBq/D-NQ-NP-876716-MLB110894002000-052026-F-removebg-preview.png",
     
-    # Demais clubes participantes oficiais
+    # Demais clubes participantes oficiais da Série A
     "mirassol": "https://i.postimg.cc/WbH2KSTj/59cde20b84400f9798e8e3b6478ea8c9-removebg-preview.png",
     "são bernardo": "https://i.postimg.cc/G3NLgqc4/logo-removebg-preview-(1).png",
     "ferroviária": "https://i.postimg.cc/rp2TTGMP/ad92fcd869cb0047d7c4af335b575762.jpg",
@@ -28,8 +28,8 @@ ESCUDOS_TIMES = {
     "bragantino": "https://i.postimg.cc/xdJpg87w/51293636497-d1e335da5a-o-1024x698-removebg-preview.png"
 }
 
-# Lista estrita dos 4 times que NÃO disputam e devem ser removidos de todo o sistema
-TIMES_REMOVIDOS = ["ponte preta", "velo clube", "água santa", "inter de limeira"]
+# Lista restrita de times removidos da Série A (Incluindo o Ituano)
+TIMES_REMOVIDOS = ["ponte preta", "velo clube", "água santa", "inter de limeira", "ituano"]
 
 class ESPNPublicService:
     URL_API_ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.paulista/scoreboard"
@@ -44,7 +44,7 @@ class ESPNPublicService:
 
     @classmethod
     def buscar_escudo_customizado(cls, nome_time: str, escudo_original: str = "") -> str:
-        """Busca o escudo customizado (dourado para os 4 grandes, prateado para a Portuguesa, padrão para os demais)."""
+        """Busca o escudo customizado correspondente."""
         if not nome_time:
             return escudo_original
             
@@ -85,7 +85,7 @@ class ESPNPublicService:
                     nome_casa = casa.get("team", {}).get("displayName", "Mandante")
                     nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
                     
-                    # Filtra e ignora partidas que envolvam os times removidos
+                    # Filtra e ignora partidas envolvendo times removidos
                     if cls.deve_remover_time(nome_casa) or cls.deve_remover_time(nome_visitante):
                         continue
 
@@ -122,15 +122,15 @@ class ESPNPublicService:
             return []
 
 class TabelaManager:
-    # Trava para manter a tabela inteiramente zerada até o campeonato começar de fato
+    # Trava para manter a tabela inteiramente zerada até o campeonato começar
     CAMPEONATO_INICIADO = False
 
     @classmethod
     def formatar_tabela_classificacao(cls, tabela_raw: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Formata a tabela:
-        1. Remove estritamente os times banidos (Ponte Preta, Velo Clube, Água Santa, Inter de Limeira).
-        2. Aplica as logos douradas e prateada.
+        1. Remove os times banidos (Ponte Preta, Velo Clube, Água Santa, Inter de Limeira e Ituano).
+        2. Aplica as novas logos douradas e prateada.
         3. Mantém todas as estatísticas zeradas.
         """
         tabela_formatada = []
@@ -139,7 +139,7 @@ class TabelaManager:
         for item in tabela_raw:
             nome_time = item.get("time", item.get("nome", ""))
             
-            # Remove se estiver na lista proibida
+            # Remove se estiver na lista de banidos
             if ESPNPublicService.deve_remover_time(nome_time):
                 continue
             
