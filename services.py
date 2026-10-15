@@ -1,18 +1,23 @@
 import httpx
 from typing import List, Dict, Any
 
-# Dicionário oficial com os escudos do Paulistão - Atualizado e Padronizado
+# Dicionário oficial com os escudos do Paulistão:
+# - 4 Grandes: Logos Douradas
+# - Portuguesa: Logo Prateada
+# - Demais clubes: Logos Padronizadas
 ESCUDOS_TIMES = {
+    # Os 4 Grandes (Logos Douradas)
     "são paulo": "https://i.postimg.cc/RZhBLtHd/Gemini-Generated-Image-w9fhmqw9fhmqw9fh-removebg-preview.png",
     "corinthians": "https://i.postimg.cc/9FGpggG4/Gemini-Generated-Image-dd6vlvdd6vlvdd6v-removebg-preview.png",
-    "mirassol": "https://i.postimg.cc/WbH2KSTj/59cde20b84400f9798e8e3b6478ea8c9-removebg-preview.png",
-    "portuguesa": "https://i.postimg.cc/MTM4n0gb/Gemini-Generated-Image-vtv2kgvtv2kgvtv2-removebg-preview.png",
-    "são bernardo": "https://i.postimg.cc/G3NLgqc4/logo-removebg-preview-(1).png",
-    
-    # Demais clubes mantidos com as URLs padrão
-    "santos": "https://i.postimg.cc/Kc7HXvBx/fundo-2-removebg-preview.png",
     "palmeiras": "https://i.postimg.cc/VkdVSxZH/D-NQ-NP-783305-MLB110188064885-042026-O-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-rem.png",
-    "juventus": "https://i.postimg.cc/L4fr9FYy/images.jpg",
+    "santos": "https://i.postimg.cc/Kc7HXvBx/fundo-2-removebg-preview.png",
+    
+    # Portuguesa (Logo Prateada)
+    "portuguesa": "https://i.postimg.cc/MTM4n0gb/Gemini-Generated-Image-vtv2kgvtv2kgvtv2-removebg-preview.png",
+    
+    # Demais clubes participantes oficiais
+    "mirassol": "https://i.postimg.cc/WbH2KSTj/59cde20b84400f9798e8e3b6478ea8c9-removebg-preview.png",
+    "são bernardo": "https://i.postimg.cc/G3NLgqc4/logo-removebg-preview-(1).png",
     "ferroviária": "https://i.postimg.cc/rp2TTGMP/ad92fcd869cb0047d7c4af335b575762.jpg",
     "capivariano": "https://i.postimg.cc/g0FcgF7T/images-1-removebg-preview.png",
     "primavera": "https://i.postimg.cc/rwmcgygY/fa3d503d6e230d22e64c62ae8db51597-c6bf0fb7a0f6ee112f17652856885912-1024-1024-removebg-preview.png",
@@ -23,12 +28,23 @@ ESCUDOS_TIMES = {
     "bragantino": "https://i.postimg.cc/xdJpg87w/51293636497-d1e335da5a-o-1024x698-removebg-preview.png"
 }
 
+# Lista dos 4 times que NÃO disputam e devem ser removidos de todo o sistema
+TIMES_REMOVIDOS = ["ponte preta", "velo clube", "água santa", "inter de limeira"]
+
 class ESPNPublicService:
     URL_API_ESPN = "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.paulista/scoreboard"
 
     @classmethod
+    def deve_remover_time(cls, nome_time: str) -> bool:
+        """Verifica se o time está na lista de removidos."""
+        if not nome_time:
+            return False
+        nome_clean = nome_time.lower().strip()
+        return any(removido in nome_clean for removido in TIMES_REMOVIDOS)
+
+    @classmethod
     def buscar_escudo_customizado(cls, nome_time: str, escudo_original: str = "") -> str:
-        """Busca o escudo customizado com base no nome do time."""
+        """Busca o escudo customizado (dourados para os grandes, prateado para a Portuguesa, padrão para os demais)."""
         if not nome_time:
             return escudo_original
             
@@ -40,7 +56,7 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_formatadas(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Busca confrontos em tempo real da API oficial da ESPN e formata os dados."""
+        """Busca confrontos em tempo real, filtra os removidos e aplica os escudos em todas as abas (agendados, ao vivo, encerrados)."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(cls.URL_API_ESPN)
@@ -56,7 +72,6 @@ class ESPNPublicService:
 
                 partidas_formatadas = []
                 
-                # Mapeamento oficial de status da ESPN para Português
                 TRADUCAO_STATUS = {
                     "STATUS_SCHEDULED": "Aguardando início",
                     "STATUS_FIRST_HALF": "1º Tempo",
@@ -78,15 +93,19 @@ class ESPNPublicService:
                     visitante = competitors[1] if competitors[1].get("homeAway") == "away" else competitors[0]
                     
                     nome_casa = casa.get("team", {}).get("displayName", "Mandante")
-                    escudo_casa_espn = casa.get("team", {}).get("logo", "")
-                    
                     nome_visitante = visitante.get("team", {}).get("displayName", "Visitante")
+                    
+                    # Filtra e ignora partidas que envolvam os times removidos
+                    if cls.deve_remover_time(nome_casa) or cls.deve_remover_time(nome_visitante):
+                        continue
+
+                    escudo_casa_espn = casa.get("team", {}).get("logo", "")
                     escudo_visitante_espn = visitante.get("team", {}).get("logo", "")
                     
+                    # Aplica os escudos customizados em qualquer estado (agendado, ao vivo, encerrado)
                     escudo_casa = cls.buscar_escudo_customizado(nome_casa, escudo_casa_espn)
                     escudo_visitante = cls.buscar_escudo_customizado(nome_visitante, escudo_visitante_espn)
 
-                    # Obtém e traduz o status real retornado pela ESPN
                     status_type = event.get("status", {}).get("type", {})
                     status_name = status_type.get("name", "")
                     status_descricao = TRADUCAO_STATUS.get(status_name, "Aguardando início")
@@ -119,7 +138,7 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_teste(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Gera confrontos de teste apenas como fallback de contingência."""
+        """Gera confrontos de teste garantindo os escudos customizados e sem os times removidos."""
         confrontos_mock = [
             ("Santos", "Corinthians", "Vila Belmiro"),
             ("São Paulo", "Portuguesa", "MorumBIS"),
@@ -154,6 +173,59 @@ class ESPNPublicService:
         return partidas_teste
 
 class TabelaManager:
+    # Trava para manter a tabela inteiramente zerada até o campeonato começar de fato
+    CAMPEONATO_INICIADO = False
+
+    @classmethod
+    def formatar_tabela_classificacao(cls, tabela_raw: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Formata a tabela:
+        1. Remove os times banidos do torneio.
+        2. Aplica as logos douradas e prateada.
+        3. Mantém todas as estatísticas zeradas até o início oficial.
+        """
+        tabela_formatada = []
+        posicao_real = 1
+
+        for item in tabela_raw:
+            nome_time = item.get("time", item.get("nome", ""))
+            
+            # Se for time removido, pula da tabela
+            if ESPNPublicService.deve_remover_time(nome_time):
+                continue
+            
+            escudo = ESPNPublicService.buscar_escudo_customizado(nome_time, item.get("escudo", ""))
+
+            if not cls.CAMPEONATO_INICIADO:
+                pontos, jogos, vitorias, empates, derrotas = 0, 0, 0, 0, 0
+                gols_pro, gols_contra, saldo_gols = 0, 0, 0
+            else:
+                pontos = item.get("pontos", 0)
+                jogos = item.get("jogos", 0)
+                vitorias = item.get("vitorias", 0)
+                empates = item.get("empates", 0)
+                derrotas = item.get("derrotas", 0)
+                gols_pro = item.get("gols_pro", 0)
+                gols_contra = item.get("gols_contra", 0)
+                saldo_gols = item.get("saldo_gols", 0)
+
+            tabela_formatada.append({
+                "posicao": posicao_real,
+                "time": nome_time,
+                "escudo": escudo,
+                "pontos": pontos,
+                "jogos": jogos,
+                "vitorias": vitorias,
+                "empates": empates,
+                "derrotas": derrotas,
+                "gols_pro": gols_pro,
+                "gols_contra": gols_contra,
+                "saldo_gols": saldo_gols
+            })
+            posicao_real += 1
+
+        return tabela_formatada
+
     @staticmethod
     def processar_rebaixamento(tabela: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return tabela
