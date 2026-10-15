@@ -28,7 +28,7 @@ ESCUDOS_TIMES = {
     "bragantino": "https://i.postimg.cc/xdJpg87w/51293636497-d1e335da5a-o-1024x698-removebg-preview.png"
 }
 
-# Lista dos 4 times que NÃO disputam e devem ser removidos de todo o sistema
+# Lista estrita dos 4 times que NÃO disputam e devem ser removidos de todo o sistema
 TIMES_REMOVIDOS = ["ponte preta", "velo clube", "água santa", "inter de limeira"]
 
 class ESPNPublicService:
@@ -36,7 +36,7 @@ class ESPNPublicService:
 
     @classmethod
     def deve_remover_time(cls, nome_time: str) -> bool:
-        """Verifica se o time está na lista de removidos."""
+        """Verifica se o time está na lista de banidos/removidos."""
         if not nome_time:
             return False
         nome_clean = nome_time.lower().strip()
@@ -44,7 +44,7 @@ class ESPNPublicService:
 
     @classmethod
     def buscar_escudo_customizado(cls, nome_time: str, escudo_original: str = "") -> str:
-        """Busca o escudo customizado (dourados para os grandes, prateado para a Portuguesa, padrão para os demais)."""
+        """Busca o escudo customizado (dourado para os 4 grandes, prateado para a Portuguesa, padrão para os demais)."""
         if not nome_time:
             return escudo_original
             
@@ -56,7 +56,7 @@ class ESPNPublicService:
 
     @classmethod
     async def obter_partidas_formatadas(cls, rodada: int = 1) -> List[Dict[str, Any]]:
-        """Busca confrontos em tempo real, filtra os removidos e define status 'A confirmar'."""
+        """Busca confrontos, filtra os removidos, aplica escudos e define status 'A confirmar'."""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(cls.URL_API_ESPN)
@@ -122,15 +122,16 @@ class ESPNPublicService:
             return []
 
 class TabelaManager:
+    # Trava para manter a tabela inteiramente zerada até o campeonato começar de fato
     CAMPEONATO_INICIADO = False
 
     @classmethod
     def formatar_tabela_classificacao(cls, tabela_raw: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Formata a tabela:
-        1. Remove os 4 times banidos.
+        1. Remove estritamente os times banidos (Ponte Preta, Velo Clube, Água Santa, Inter de Limeira).
         2. Aplica as logos douradas e prateada.
-        3. Mantém a pontuação zerada até o início do campeonato.
+        3. Mantém todas as estatísticas zeradas.
         """
         tabela_formatada = []
         posicao_real = 1
@@ -138,6 +139,7 @@ class TabelaManager:
         for item in tabela_raw:
             nome_time = item.get("time", item.get("nome", ""))
             
+            # Remove se estiver na lista proibida
             if ESPNPublicService.deve_remover_time(nome_time):
                 continue
             
