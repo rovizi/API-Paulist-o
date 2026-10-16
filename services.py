@@ -64,16 +64,15 @@ def obter_tabela_paulistao() -> List[Dict[str, Any]]:
     """Busca a tabela de classificação oficial via ESPN API com fallback local."""
     url = "https://site.api.espn.com/apis/v2/sports/soccer/bra.camp.paulista/standings"
     
+    tabela = []
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
-            tabela = []
-            
             children = data.get("children", [])
             if children:
                 standings = children[0].get("standings", {}).get("entries", [])
-                for idx, entry in enumerate(standings, start=1):
+                for entry in standings:
                     team_info = entry.get("team", {})
                     nome = team_info.get("displayName", "")
                     
@@ -84,7 +83,7 @@ def obter_tabela_paulistao() -> List[Dict[str, Any]]:
                     escudo_original = team_info.get("logos", [{}])[0].get("href", "")
                     
                     tabela.append({
-                        "posicao": len(tabela) + 1,
+                        "posicao": 0,  # Definido depois
                         "time": nome,
                         "escudo": obter_escudo(nome, escudo_original),
                         "pontos": int(stats.get("points", 0)),
@@ -96,13 +95,31 @@ def obter_tabela_paulistao() -> List[Dict[str, Any]]:
                         "gols_contra": int(stats.get("pointsAgainst", 0)),
                         "saldo_gols": int(stats.get("pointDifferential", 0))
                     })
-                
-                if tabela:
-                    return tabela
     except Exception as e:
         print(f"Erro ao buscar tabela da ESPN: {e}")
+
+    # Garante que a Ferroviária e o Juventus estejam presentes na tabela
+    nomes_atuais = {t["time"].lower() for t in tabela}
+    
+    if not any("ferroviária" in n or "afe" in n for n in nomes_atuais):
+        tabela.append({
+            "posicao": 0, "time": "Ferroviária", "escudo": obter_escudo("Ferroviária"),
+            "pontos": 0, "jogos": 0, "vitorias": 0, "empates": 0, "derrotas": 0,
+            "gols_pro": 0, "gols_contra": 0, "saldo_gols": 0
+        })
         
-    return obter_tabela_fallback()
+    if not any("juventus" in n for n in nomes_atuais):
+        tabela.append({
+            "posicao": 0, "time": "Juventus SP", "escudo": obter_escudo("Juventus SP"),
+            "pontos": 0, "jogos": 0, "vitorias": 0, "empates": 0, "derrotas": 0,
+            "gols_pro": 0, "gols_contra": 0, "saldo_gols": 0
+        })
+
+    # Ordena e reatribui as posições
+    for idx, time_obj in enumerate(tabela, start=1):
+        time_obj["posicao"] = idx
+
+    return tabela if tabela else obter_tabela_fallback()
 
 def obter_partidas_paulistao() -> List[Dict[str, Any]]:
     """Busca as partidas oficiais via ESPN API com fallback local."""
@@ -190,18 +207,6 @@ def obter_partidas_fallback() -> List[Dict[str, Any]]:
             "placar_mandante": None,
             "visitante": "Corinthians",
             "escudo_visitante": obter_escudo("Corinthians"),
-            "placar_visitante": None
-        },
-        {
-            "id": "f2",
-            "data": "2027-01-17T18:30:00Z",
-            "status": "A confirmar",
-            "estadio": "Canindé",
-            "mandante": "Portuguesa",
-            "escudo_mandante": obter_escudo("Portuguesa"),
-            "placar_mandante": None,
-            "visitante": "Guarani",
-            "escudo_visitante": obter_escudo("Guarani"),
             "placar_visitante": None
         }
     ]
