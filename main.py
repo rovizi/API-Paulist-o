@@ -1,9 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services import ESPNPublicService, TabelaManager
+from services import obter_tabela_paulistao, obter_partidas_paulistao
 
-app = FastAPI(title="Paulistão 2027 API", version="1.0.0")
+app = FastAPI(
+    title="API Paulistão 2027",
+    description="API híbrida com dados ao vivo da ESPN e escudos customizados.",
+    version="1.0.0"
+)
 
+# Configuração de CORS para permitir acesso de qualquer origem (Looker Studio, painéis, etc.)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,24 +18,22 @@ app.add_middleware(
 )
 
 @app.get("/")
-async def root():
-    return {"message": "API do Paulistão 2027 Rodando com Sucesso!"}
+def home():
+    return {
+        "status": "online",
+        "campeonato": "Paulistão 2027",
+        "endpoints": {
+            "tabela": "/api/v1/tabela",
+            "partidas": "/api/v1/partidas"
+        }
+    }
 
 @app.get("/api/v1/tabela")
-async def obter_tabela():
-    try:
-        dados_brutos = await ESPNPublicService.obter_partidas_formatadas()
-        tabela_formatada = TabelaManager.formatar_tabela_classificacao(dados_brutos)
-        return tabela_formatada
-    except Exception as e:
-        print(f"Erro ao gerar tabela: {e}")
-        return []
+def get_tabela():
+    """Retorna a tabela de classificação atualizada com os escudos customizados."""
+    return obter_tabela_paulistao()
 
 @app.get("/api/v1/partidas")
-async def obter_partidas(rodada: int = 1):
-    try:
-        partidas = await ESPNPublicService.obter_partidas_formatadas(rodada)
-        return partidas
-    except Exception as e:
-        print(f"Erro ao buscar partidas: {e}")
-        return []
+def get_partidas():
+    """Retorna as partidas da rodada com os escudos customizados dos mandantes e visitantes."""
+    return obter_partidas_paulistao()
