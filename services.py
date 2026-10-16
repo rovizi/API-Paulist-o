@@ -53,5 +53,24 @@ def obter_tabela_paulistao() -> list:
 
 
 def obter_partidas_paulistao() -> list:
-    """Retorna a lista de partidas do Paulistão."""
-    return []
+    """Retorna a lista de partidas injetando os escudos corretos dos mandantes e visitantes."""
+    confrontos_iniciais = [
+        {"mandante": "Corinthians", "visitante": "Palmeiras", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "Santos", "placar": "0 x 0"},
+        {"mandante": "Portuguesa", "visitante": "Red Bull Bragantino", "placar": "0 x 0"},
+        {"mandante": "Guarani", "visitante": "Ponte Preta", "placar": "0 x 0"},
+    ]
+
+    partidas_enriquecidas = []
+    for jogo in confrontos_iniciais:
+        mandante = jogo["mandante"]
+        visitante = jogo["visitante"]
+        partidas_enriquecidas.append({
+            "mandante": mandante,
+            "visitante": visitante,
+            "escudo_mandante": obter_escudo_clube(mandante),
+            "escudo_visitante": obter_escudo_clube(visitante),
+            "placar": jogo["placar"]
+        })
+
+    return partidas_enriquecidas
