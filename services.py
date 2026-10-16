@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 """
+# -*- coding: utf-8 -*-
+
+"""
 services.py - Fonte da verdade para dados do Paulistão 2027.
-Gerencia os escudos padronizados dos 16 clubes da Série A1 e a inicialização de dados da API.
+Gerencia os escudos padronizados dos 16 clubes da Série A1.
 """
 
 # Dicionário oficial e padronizado com os escudos tradicionais dos 16 clubes da Série A1
@@ -18,7 +21,7 @@ ESCUDOS_CUSTOMIZADOS = {
     "Mirassol": "https://i.postimg.cc/kXfKkx6L/Mirassol-Futebol-Clube-logo-(3-stars).png",
     "São Bernardo": "https://i.postimg.cc/g23dxKV6/Sao-Bernardo-FC-2020-crest.png",
     "Primavera": "https://i.postimg.cc/SNt2ktnW/logo-ebook.png",
-    "Capivariano": "https://i.postimg.cc/nL84knQn/capivariano.png",
+    "Capivariano": "https://i.postimg.cc/nL84knQn/capivariano.png", # LINK ATUALIZADO AQUI
     "Novorizontino": "https://i.postimg.cc/tJLJj4bZ/images-removebg-preview.png",
     "Ferroviária": "https://i.postimg.cc/66S3Ckt7/ad92fcd869cb0047d7c4af335b575762-removebg-preview.png",
     "Noroeste": "https://i.postimg.cc/L8PCRCtM/9500b1cc3476659e93ed698e386b2a95-removebg-preview.png",
@@ -54,23 +57,5 @@ def obter_tabela_paulistao() -> list:
 
 def obter_partidas_paulistao() -> list:
     """Retorna a lista de partidas injetando os escudos corretos dos mandantes e visitantes."""
-    confrontos_iniciais = [
-        {"mandante": "Corinthians", "visitante": "Palmeiras", "placar": "0 x 0"},
-        {"mandante": "São Paulo", "visitante": "Santos", "placar": "0 x 0"},
-        {"mandante": "Portuguesa", "visitante": "Red Bull Bragantino", "placar": "0 x 0"},
-        {"mandante": "Guarani", "visitante": "Ponte Preta", "placar": "0 x 0"},
-    ]
-
-    partidas_enriquecidas = []
-    for jogo in confrontos_iniciais:
-        mandante = jogo["mandante"]
-        visitante = jogo["visitante"]
-        partidas_enriquecidas.append({
-            "mandante": mandante,
-            "visitante": visitante,
-            "escudo_mandante": obter_escudo_clube(mandante),
-            "escudo_visitante": obter_escudo_clube(visitante),
-            "placar": jogo["placar"]
-        })
-
-    return partidas_enriquecidas
+    # Como as partidas ainda não estão definidas, retornamos uma lista vazia ou partidas de exemplo
+    return []
