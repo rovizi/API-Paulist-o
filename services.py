@@ -27,17 +27,12 @@ ESCUDOS_CUSTOMIZADOS = {
 
 
 def obter_escudo_clube(nome_clube: str) -> str:
-    """
-    Retorna a URL oficial do escudo do clube.
-    Se não for encontrado, retorna uma string vazia ou imagem padrão.
-    """
+    """Retorna a URL oficial do escudo do clube."""
     return ESCUDOS_CUSTOMIZADOS.get(nome_clube, "")
 
 
 def zerar_estatisticas_clube(nome_clube: str) -> dict:
-    """
-    Retorna a estrutura de dados de um clube zerada para o estado pré-torneio.
-    """
+    """Retorna a estrutura de dados de um clube zerada para o estado pré-torneio."""
     return {
         "clube": nome_clube,
         "escudo": obter_escudo_clube(nome_clube),
@@ -48,34 +43,15 @@ def zerar_estatisticas_clube(nome_clube: str) -> dict:
         "derrotas": 0,
         "gols_pro": 0,
         "gols_contra": 0,
-        "saldo_gols": 0,
-        "aproveitamento": 0.0,
-        "ultimos_jogos": []
+        "saldo_gols": 0
     }
 
 
-def obter_tabela_classificacao() -> list[dict]:
-    """
-    Gera a tabela de classificação inicial com todos os 16 clubes
-    devidamente mapeados e com estatísticas zeradas.
-    """
-    tabela = [
-        zerar_estatisticas_clube(clube)
-        for clube in ESCUDOS_CUSTOMIZADOS.keys()
-    ]
-    # Ordenação padrão alfabética pré-campeonato
-    return sorted(tabela, key=lambda x: x["clube"])
+def obter_tabela_paulistao() -> list:
+    """Gera a tabela de classificação inicial com todos os 16 clubes e dados zerados."""
+    return [zerar_estatisticas_clube(clube) for clube in ESCUDOS_CUSTOMIZADOS.keys()]
 
 
-def processar_payload_partida(partida: dict) -> dict:
-    """
-    Enriquece um objeto de partida injetando as URLs dos escudos
-    oficiais dos times mandante e visitante.
-    """
-    time_mandante = partida.get("mandante", "")
-    time_visitante = partida.get("visitante", "")
-
-    partida["escudo_mandante"] = obter_escudo_clube(time_mandante)
-    partida["escudo_visitante"] = obter_escudo_clube(time_visitante)
-
-    return partida
+def obter_partidas_paulistao() -> list:
+    """Retorna a lista de partidas do Paulistão."""
+    return []
