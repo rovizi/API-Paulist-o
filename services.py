@@ -16,10 +16,9 @@ ESCUDOS_TIMES: Dict[str, str] = {
     "ferroviária": "https://i.postimg.cc/rp2TTGMP/ad92fcd869cb0047d7c4af335b575762.jpg",
     "ferroviaria": "https://i.postimg.cc/rp2TTGMP/ad92fcd869cb0047d7c4af335b575762.jpg",
     "capivariano": "https://i.postimg.cc/g0FcgF7T/images-1-removebg-preview.png",
-    "primavera": "https://i.postimg.cc/rwmcgygY/fa3d503d6e230d22e64c62ae8db51597-c6bf0fb7a0f6ee112f17652856885912-1024-1024-removebg-preview.png",
+    "primavera": "https://i.postimg.cc/SNt2ktnW/logo-ebook.png",
     "botafogo": "https://i.postimg.cc/RF9HbbhF/0x1900-000000-80-0-0-removebg-preview.png",
     "botafogo-sp": "https://i.postimg.cc/RF9HbbhF/0x1900-000000-80-0-0-removebg-preview.png",
-    "noroeste": "https://i.postimg.cc/9Xwvm8Qz/0x1900-000000-80-0-0-removebg-preview.png",
     "guarani": "https://i.postimg.cc/N0JjcJjc/Whats-App-Image-2023-06-19-at-10-35-15-removebg-preview.png",
     "novorizontino": "https://i.postimg.cc/FKQjSKyF/images-removebg-preview.png",
     "bragantino": "https://i.postimg.cc/xdJpg87w/51293636497-d1e335da5a-o-1024x698-removebg-preview.png",
@@ -33,7 +32,8 @@ TIMES_EXCLUIDOS = {
     "água santa", 
     "agua santa", 
     "inter de limeira", 
-    "ituano"
+    "ituano",
+    "noroeste"
 }
 
 def obter_escudo(nome_time: str, escudo_padrao: str = "") -> str:
@@ -147,7 +147,7 @@ def obter_tabela_fallback() -> List[Dict[str, Any]]:
     times_base = [
         "São Paulo", "Corinthians", "Palmeiras", "Santos", "Portuguesa",
         "Mirassol", "São Bernardo", "Ferroviária", "Capivariano", "Primavera",
-        "Botafogo", "Noroeste", "Guarani", "Novorizontino", "Bragantino"
+        "Botafogo", "Guarani", "Novorizontino", "Bragantino"
     ]
     
     tabela = []
