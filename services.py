@@ -2,7 +2,7 @@ import os
 import requests
 from typing import Dict, Any, List
 
-# Dicionário permanente de escudos customizados (Dourados para o Big Four, Silver para Portuguesa e URLs diretas)
+# Dicionário permanente de escudos customizados
 ESCUDOS_TIMES: Dict[str, str] = {
     "são paulo": "https://i.postimg.cc/hjCJQprP/Gemini-Generated-Image-n6n9n7n6n9n7n6n9-removebg-preview.png",
     "sao paulo": "https://i.postimg.cc/hjCJQprP/Gemini-Generated-Image-n6n9n7n6n9n7n6n9-removebg-preview.png",
@@ -13,12 +13,20 @@ ESCUDOS_TIMES: Dict[str, str] = {
     "mirassol": "https://i.postimg.cc/WbH2KSTj/59cde20b84400f9798e8e3b6478ea8c9-removebg-preview.png",
     "são bernardo": "https://i.postimg.cc/G3NLgqc4/logo-removebg-preview-(1).png",
     "sao bernardo": "https://i.postimg.cc/G3NLgqc4/logo-removebg-preview-(1).png",
-    "ferroviária": "https://i.postimg.cc/rp2TTGMP/ad92fcd869cb0047d7c4af335b575762.jpg",
-    "ferroviaria": "https://i.postimg.cc/rp2TTGMP/ad92fcd869cb0047d7c4af335b575762.jpg",
+    "ferroviária": "https://i.postimg.cc/66S3Ckt7/ad92fcd869cb0047d7c4af335b575762-removebg-preview.png",
+    "ferroviaria": "https://i.postimg.cc/66S3Ckt7/ad92fcd869cb0047d7c4af335b575762-removebg-preview.png",
+    "afe": "https://i.postimg.cc/66S3Ckt7/ad92fcd869cb0047d7c4af335b575762-removebg-preview.png",
     "capivariano": "https://i.postimg.cc/g0FcgF7T/images-1-removebg-preview.png",
     "primavera": "https://i.postimg.cc/SNt2ktnW/logo-ebook.png",
+    "primavera sp": "https://i.postimg.cc/SNt2ktnW/logo-ebook.png",
+    "ec primavera": "https://i.postimg.cc/SNt2ktnW/logo-ebook.png",
+    "juventus": "https://i.postimg.cc/kG8B2sVc/Juventus-SP-logo.png",
+    "juventus sp": "https://i.postimg.cc/kG8B2sVc/Juventus-SP-logo.png",
+    "ca juventus": "https://i.postimg.cc/kG8B2sVc/Juventus-SP-logo.png",
+    "clube atlético juventus": "https://i.postimg.cc/kG8B2sVc/Juventus-SP-logo.png",
     "botafogo": "https://i.postimg.cc/RF9HbbhF/0x1900-000000-80-0-0-removebg-preview.png",
     "botafogo-sp": "https://i.postimg.cc/RF9HbbhF/0x1900-000000-80-0-0-removebg-preview.png",
+    "botafogo sp": "https://i.postimg.cc/RF9HbbhF/0x1900-000000-80-0-0-removebg-preview.png",
     "guarani": "https://i.postimg.cc/N0JjcJjc/Whats-App-Image-2023-06-19-at-10-35-15-removebg-preview.png",
     "novorizontino": "https://i.postimg.cc/FKQjSKyF/images-removebg-preview.png",
     "bragantino": "https://i.postimg.cc/xdJpg87w/51293636497-d1e335da5a-o-1024x698-removebg-preview.png",
@@ -27,13 +35,12 @@ ESCUDOS_TIMES: Dict[str, str] = {
 
 # Lista de clubes proibidos / excluídos (Série A1 2027)
 TIMES_EXCLUIDOS = {
-    "ponte preta", 
-    "velo clube", 
-    "água santa", 
-    "agua santa", 
-    "inter de limeira", 
-    "ituano",
-    "noroeste"
+    "ponte preta", "aa ponte preta",
+    "velo clube", "ae velo clube", "velo clube sp",
+    "água santa", "agua santa", "ec água santa",
+    "inter de limeira", "aa inter de limeira",
+    "ituano", "ituano fc",
+    "noroeste", "ec noroeste"
 }
 
 def obter_escudo(nome_time: str, escudo_padrao: str = "") -> str:
@@ -47,7 +54,11 @@ def time_permitido(nome_time: str) -> bool:
     """Valida se o time não está na lista de excluídos."""
     if not nome_time:
         return True
-    return nome_time.strip().lower() not in TIMES_EXCLUIDOS
+    nome_norm = nome_time.strip().lower()
+    for excluido in TIMES_EXCLUIDOS:
+        if excluido in nome_norm:
+            return False
+    return True
 
 def obter_tabela_paulistao() -> List[Dict[str, Any]]:
     """Busca a tabela de classificação oficial via ESPN API com fallback local."""
@@ -146,8 +157,8 @@ def obter_partidas_paulistao() -> List[Dict[str, Any]]:
 def obter_tabela_fallback() -> List[Dict[str, Any]]:
     times_base = [
         "São Paulo", "Corinthians", "Palmeiras", "Santos", "Portuguesa",
-        "Mirassol", "São Bernardo", "Ferroviária", "Capivariano", "Primavera",
-        "Botafogo", "Guarani", "Novorizontino", "Bragantino"
+        "Mirassol", "São Bernardo", "Ferroviária", "Capivariano", "Primavera SP",
+        "Juventus SP", "Botafogo SP", "Guarani", "Novorizontino", "Red Bull Bragantino"
     ]
     
     tabela = []
