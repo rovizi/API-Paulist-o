@@ -49,7 +49,7 @@ def obter_partidas_paulistao() -> list:
         {"mandante": "Corinthians", "visitante": "Palmeiras", "placar": "0 x 0"},
         {"mandante": "São Paulo", "visitante": "Santos", "placar": "0 x 0"},
         {"mandante": "Portuguesa", "visitante": "Red Bull Bragantino", "placar": "0 x 0"},
-        {"mandante": "Guarani", "visitante": "Botafogo-SP", "placar": "0 x 0"},
+        {"mandante": "Mirassol", "visitante": "São Bernardo", "placar": "0 x 0"},
     ]
     
     partidas_enriquecidas = []
