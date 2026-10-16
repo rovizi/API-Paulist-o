@@ -1,5 +1,8 @@
 import requests
 
+
+import requests
+
 # 1. LISTA DE TIMES EXCLUÍDOS
 TIMES_EXCLUIDOS = ["Noroeste", "Velo Clube", "EC Noroeste"]
 
@@ -34,7 +37,8 @@ TIMES_SERIE_A1 = [
 def obter_escudo(nome_time):
     return ESCUDOS_CUSTOMIZADOS.get(nome_time, f"https://via.placeholder.com/150?text={nome_time}")
 
-def get_tabela():
+# Mantém os nomes alternativos para garantir compatibilidade com o main.py
+def obter_tabela_paulistao():
     tabela_zerada = []
     for posicao, time_nome in enumerate(TIMES_SERIE_A1, start=1):
         tabela_zerada.append({
@@ -52,8 +56,11 @@ def get_tabela():
         })
     return tabela_zerada
 
-def get_partidas():
-    partidas = [
+def get_tabela():
+    return obter_tabela_paulistao()
+
+def obter_partidas_paulistao():
+    return [
         {
             "data": "2027-01-15T19:00:00Z",
             "status": "NS",
@@ -66,4 +73,6 @@ def get_partidas():
             "placar_visitante": 0
         }
     ]
-    return partidas
+
+def get_partidas():
+    return obter_partidas_paulistao()
