@@ -1,5 +1,4 @@
-
-iimport os
+import os
 import requests
 from typing import Dict, Any, List
 
@@ -60,7 +59,6 @@ def obter_tabela_paulistao() -> List[Dict[str, Any]]:
             data = response.json()
             tabela = []
             
-            # Navega na estrutura do JSON da ESPN
             children = data.get("children", [])
             if children:
                 standings = children[0].get("standings", {}).get("entries", [])
@@ -71,9 +69,7 @@ def obter_tabela_paulistao() -> List[Dict[str, Any]]:
                     if not time_permitido(nome):
                         continue
                     
-                    # Extrai estatísticas se disponíveis
                     stats = {s.get("name"): s.get("value", 0) for s in entry.get("stats", [])}
-                    
                     escudo_original = team_info.get("logos", [{}])[0].get("href", "")
                     
                     tabela.append({
@@ -95,7 +91,6 @@ def obter_tabela_paulistao() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"Erro ao buscar tabela da ESPN: {e}")
         
-    # Fallback caso a ESPN esteja fora do ar ou sem dados
     return obter_tabela_fallback()
 
 def obter_partidas_paulistao() -> List[Dict[str, Any]]:
@@ -146,11 +141,9 @@ def obter_partidas_paulistao() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"Erro ao buscar partidas da ESPN: {e}")
         
-    # Fallback de partidas
     return obter_partidas_fallback()
 
 def obter_tabela_fallback() -> List[Dict[str, Any]]:
-    """Tabela padrão base para o início do campeonato."""
     times_base = [
         "São Paulo", "Corinthians", "Palmeiras", "Santos", "Portuguesa",
         "Mirassol", "São Bernardo", "Ferroviária", "Capivariano", "Primavera",
@@ -175,7 +168,6 @@ def obter_tabela_fallback() -> List[Dict[str, Any]]:
     return tabela
 
 def obter_partidas_fallback() -> List[Dict[str, Any]]:
-    """Partidas modelo para quando a tabela de jogos ainda não tiver iniciado na ESPN."""
     return [
         {
             "id": "f1",
