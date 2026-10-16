@@ -1,83 +1,81 @@
-import requests
+# -*- coding: utf-8 -*-
 
-# 1. LISTA DE TIMES EXCLUÍDOS
-TIMES_EXCLUIDOS = ["Noroeste", "Velo Clube", "EC Noroeste"]
+"""
+services.py - Fonte da verdade para dados do Paulistão 2027.
+Gerencia os escudos padronizados dos 16 clubes da Série A1 e a inicialização de dados da API.
+"""
 
-# 2. DICIONÁRIO COMPLETO E INDIVIDUAL DOS 15 ESCUDOS CUSTOMIZADOS
-# (Cada time apontando exatamente para a sua imagem, sem misturar)
+# Dicionário oficial e padronizado com os escudos tradicionais dos 16 clubes da Série A1
 ESCUDOS_CUSTOMIZADOS = {
-    # Dourados / Especiais
-    "Palmeiras": "https://i.postimg.cc/c4CRh8gm/D-NQ-NP-783305-MLB110188064885-042026-0-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-removebg-preview.png",
-    "Portuguesa": "https://i.postimg.cc/nrcP0cBq/D-NQ-NP-876716-MLB110894002000-052026-F-removebg-preview.png",
-    "Corinthians": "https://i.postimg.cc/c4CRh8gm/D-NQ-NP-783305-MLB110188064885-042026-0-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-removebg-preview.png",
-    "São Paulo": "https://i.postimg.cc/nrcP0cBq/D-NQ-NP-876716-MLB110894002000-052026-F-removebg-preview.png",
-    "Santos": "https://i.postimg.cc/kG8B2sVc/images-removebg-preview.png",
-    
-    # PNGs Transparentes / Oficiais
-    "Novorizontino": "https://i.postimg.cc/c4CRh8gm/D-NQ-NP-783305-MLB110188064885-042026-0-escudo-especial-palmeiras-ouro-50x50-grande-placa-decor-removebg-preview.png",
-    "Red Bull Bragantino": "https://i.postimg.cc/nrcP0cBq/D-NQ-NP-876716-MLB110894002000-052026-F-removebg-preview.png",
-    "Capivariano": "https://i.postimg.cc/66S3Ckt7/afe.png",
-    "Guarani": "https://i.postimg.cc/66S3Ckt7/afe.png",
-    "Botafogo-SP": "https://i.postimg.cc/66S3Ckt7/afe.png",
-    "Mirassol": "https://i.postimg.cc/N0JjcJc0/1000085816-removebg-preview.png",
-    "Primavera SP": "https://i.postimg.cc/N0JjcJc0/1000085816-removebg-preview.png",
-    "Primavera": "https://i.postimg.cc/N0JjcJc0/1000085816-removebg-preview.png",
-    "São Bernardo": "https://i.postimg.cc/kG8B2sVc/images-removebg-preview.png",
-    "Ferroviária": "https://i.postimg.cc/66S3Ckt7/afe.png",
-    "Juventus SP": "https://i.postimg.cc/kG8B2sVc/images-removebg-preview.png",
-    "Juventus": "https://i.postimg.cc/kG8B2sVc/images-removebg-preview.png"
+    "Santos": "https://i.postimg.cc/qRfYVfhX/Santos-Logo.png",
+    "Corinthians": "https://i.postimg.cc/vBzvPCWY/Corinthians-logo-escudo.png",
+    "Palmeiras": "https://i.postimg.cc/nVXkKSXj/palmeiras.png",
+    "São Paulo": "https://i.postimg.cc/tgLgKgNN/Sao-Paulo-Futebol-Clube.png",
+    "Portuguesa": "https://i.postimg.cc/pLmRPHTG/portuguesa-logo-png-seeklogo-110983.png",
+    "Red Bull Bragantino": "https://i.postimg.cc/VvZphJjW/Red-Bull-Bragantino.png",
+    "Guarani": "https://i.postimg.cc/mDJ63vRY/Guarani-Futebol-Clube-logo-svg.webp",
+    "Botafogo-SP": "https://i.postimg.cc/W4tn955w/png-clipart-botafogo-futebol-clube-botafogo-de-futebol-e-regatas-campeonato-brasileiro-serie-c-espor.png",
+    "Mirassol": "https://i.postimg.cc/kXfKkx6L/Mirassol-Futebol-Clube-logo-(3-stars).png",
+    "São Bernardo": "https://i.postimg.cc/g23dxKV6/Sao-Bernardo-FC-2020-crest.png",
+    "Primavera": "https://i.postimg.cc/SNt2ktnW/logo-ebook.png",
+    "Capivariano": "https://i.postimg.cc/nL84knQn/capivariano.png",
+    "Novorizontino": "https://i.postimg.cc/tJLJj4bZ/images-removebg-preview.png",
+    "Ferroviária": "https://i.postimg.cc/66S3Ckt7/ad92fcd869cb0047d7c4af335b575762-removebg-preview.png",
+    "Noroeste": "https://i.postimg.cc/L8PCRCtM/9500b1cc3476659e93ed698e386b2a95-removebg-preview.png",
+    "Juventus": "https://i.postimg.cc/T1ySbRDP/ae184f0d31dcb85851aaab1fd2432e40.png"
 }
 
-# 3. LISTA OFICIAL DOS 15 CLUBES DA SÉRIE A1
-TIMES_SERIE_A1 = [
-    "Novorizontino", "Palmeiras", "Red Bull Bragantino", "Portuguesa", "Corinthians",
-    "São Paulo", "Capivariano", "Santos", "Guarani", "Botafogo-SP",
-    "Mirassol", "Primavera SP", "São Bernardo", "Ferroviária", "Juventus SP"
-]
 
-def obter_escudo(nome_time):
-    """Busca o link exato do escudo no dicionário"""
-    return ESCUDOS_CUSTOMIZADOS.get(nome_time, f"https://via.placeholder.com/150?text={nome_time}")
+def obter_escudo_clube(nome_clube: str) -> str:
+    """
+    Retorna a URL oficial do escudo do clube.
+    Se não for encontrado, retorna uma string vazia ou imagem padrão.
+    """
+    return ESCUDOS_CUSTOMIZADOS.get(nome_clube, "")
 
-def obter_tabela_paulistao():
-    """Retorna a tabela totalmente zerada para a pré-temporada mantendo os escudos oficiais"""
-    tabela_zerada = []
-    for posicao, time_nome in enumerate(TIMES_SERIE_A1, start=1):
-        tabela_zerada.append({
-            "posicao": posicao,
-            "time": time_nome,
-            "escudo": obter_escudo(time_nome),
-            "pontos": 0,
-            "jogos": 0,
-            "vitorias": 0,
-            "empates": 0,
-            "derrotas": 0,
-            "gols_pro": 0,
-            "gols_contra": 0,
-            "saldo_gols": 0
-        })
-    return tabela_zerada
 
-def get_tabela():
-    """Compatibilidade de nome com o main.py"""
-    return obter_tabela_paulistao()
+def zerar_estatisticas_clube(nome_clube: str) -> dict:
+    """
+    Retorna a estrutura de dados de um clube zerada para o estado pré-torneio.
+    """
+    return {
+        "clube": nome_clube,
+        "escudo": obter_escudo_clube(nome_clube),
+        "pontos": 0,
+        "jogos": 0,
+        "vitorias": 0,
+        "empates": 0,
+        "derrotas": 0,
+        "gols_pro": 0,
+        "gols_contra": 0,
+        "saldo_gols": 0,
+        "aproveitamento": 0.0,
+        "ultimos_jogos": []
+    }
 
-def obter_partidas_paulistao():
-    """Retorna as partidas pré-configuradas"""
-    return [
-        {
-            "data": "2027-01-15T19:00:00Z",
-            "status": "NS",
-            "estadio": "A definir",
-            "mandante": "Santos",
-            "escudo_mandante": obter_escudo("Santos"),
-            "placar_mandante": 0,
-            "visitante": "Novorizontino",
-            "escudo_visitante": obter_escudo("Novorizontino"),
-            "placar_visitante": 0
-        }
+
+def obter_tabela_classificacao() -> list[dict]:
+    """
+    Gera a tabela de classificação inicial com todos os 16 clubes
+    devidamente mapeados e com estatísticas zeradas.
+    """
+    tabela = [
+        zerar_estatisticas_clube(clube)
+        for clube in ESCUDOS_CUSTOMIZADOS.keys()
     ]
+    # Ordenação padrão alfabética pré-campeonato
+    return sorted(tabela, key=lambda x: x["clube"])
 
-def get_partidas():
-    """Compatibilidade de nome com o main.py"""
-    return obter_partidas_paulistao()
+
+def processar_payload_partida(partida: dict) -> dict:
+    """
+    Enriquece um objeto de partida injetando as URLs dos escudos
+    oficiais dos times mandante e visitante.
+    """
+    time_mandante = partida.get("mandante", "")
+    time_visitante = partida.get("visitante", "")
+
+    partida["escudo_mandante"] = obter_escudo_clube(time_mandante)
+    partida["escudo_visitante"] = obter_escudo_clube(time_visitante)
+
+    return partida
