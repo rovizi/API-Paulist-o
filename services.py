@@ -16,7 +16,7 @@ ESCUDOS_CUSTOMIZADOS = {
     "Botafogo-SP": "https://i.postimg.cc/W4tn955w/png-clipart-botafogo-futebol-clube-botafogo-de-futebol-e-regatas-campeonato-brasileiro-serie-c-espor.png",
     "Mirassol": "https://i.postimg.cc/kXfKkx6L/Mirassol-Futebol-Clube-logo-(3-stars).png",
     "São Bernardo": "https://i.postimg.cc/g23dxKV6/Sao-Bernardo-FC-2020-crest.png",
-    "Primavera": "https://i.postimg.cc/SNt2ktnW/logo-ebook.png",
+    "Primavera": "https://i.postimg.cc/L5yQRNNG/logo-ebook.png",
     "Capivariano": "https://i.postimg.cc/nL84knQn/capivariano.png",
     "Novorizontino": "https://i.postimg.cc/tJLJj4bZ/images-removebg-preview.png",
     "Ferroviária": "https://i.postimg.cc/66S3Ckt7/ad92fcd869cb0047d7c4af335b575762-removebg-preview.png",
