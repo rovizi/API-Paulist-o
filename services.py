@@ -15,7 +15,7 @@ ESCUDOS_CUSTOMIZADOS = {
     "Guarani": "https://i.postimg.cc/mDJ63vRY/Guarani-Futebol-Clube-logo-svg.webp",
     "Botafogo-SP": "https://i.postimg.cc/W4tn955w/png-clipart-botafogo-futebol-clube-botafogo-de-futebol-e-regatas-campeonato-brasileiro-serie-c-espor.png",
     "Mirassol": "https://i.postimg.cc/kXfKkx6L/Mirassol-Futebol-Clube-logo-(3-stars).png",
-    "São Bernardo": "https://i.postimg.cc/g23dxKV6/Sao-Bernardo-FC-2020-crest.png",
+    "São Bernardo": "https://i.postimg.cc/ZYF3yY3X/Gemini-Generated-Image-16lgop16lgop16lg.png",
     "Primavera": "https://i.postimg.cc/L5yQRNNG/logo-ebook.png",
     "Capivariano": "https://i.postimg.cc/nL84knQn/capivariano.png",
     "Novorizontino": "https://i.postimg.cc/tJLJj4bZ/images-removebg-preview.png",
@@ -46,10 +46,99 @@ def obter_tabela_paulistao() -> list:
 
 def obter_partidas_paulistao() -> list:
     confrontos_iniciais = [
-        {"mandante": "Corinthians", "visitante": "Palmeiras", "placar": "0 x 0"},
+        # SÃO PAULO
         {"mandante": "São Paulo", "visitante": "Santos", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "Palmeiras", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "Corinthians", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "Novorizontino", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "Portuguesa", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "Botafogo-SP", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "Mirassol", "placar": "0 x 0"},
+        {"mandante": "São Paulo", "visitante": "São Bernardo", "placar": "0 x 0"},
+        
+        # SANTOS
+        {"mandante": "Santos", "visitante": "Palmeiras", "placar": "0 x 0"},
+        {"mandante": "Santos", "visitante": "Corinthians", "placar": "0 x 0"},
+        {"mandante": "Santos", "visitante": "Portuguesa", "placar": "0 x 0"},
+        {"mandante": "Santos", "visitante": "Red Bull Bragantino", "placar": "0 x 0"},
+        {"mandante": "Santos", "visitante": "Mirassol", "placar": "0 x 0"},
+        {"mandante": "Santos", "visitante": "Guarani", "placar": "0 x 0"},
+        {"mandante": "Santos", "visitante": "Juventus", "placar": "0 x 0"},
+
+        # PALMEIRAS
+        {"mandante": "Palmeiras", "visitante": "Corinthians", "placar": "0 x 0"},
+        {"mandante": "Palmeiras", "visitante": "Red Bull Bragantino", "placar": "0 x 0"},
+        {"mandante": "Palmeiras", "visitante": "Capivariano", "placar": "0 x 0"},
+        {"mandante": "Palmeiras", "visitante": "Guarani", "placar": "0 x 0"},
+        {"mandante": "Palmeiras", "visitante": "Primavera", "placar": "0 x 0"},
+        {"mandante": "Palmeiras", "visitante": "Ferroviária", "placar": "0 x 0"},
+
+        # CORINTHIANS
+        {"mandante": "Corinthians", "visitante": "Novorizontino", "placar": "0 x 0"},
+        {"mandante": "Corinthians", "visitante": "Capivariano", "placar": "0 x 0"},
+        {"mandante": "Corinthians", "visitante": "Botafogo-SP", "placar": "0 x 0"},
+        {"mandante": "Corinthians", "visitante": "Primavera", "placar": "0 x 0"},
+        {"mandante": "Corinthians", "visitante": "Noroeste", "placar": "0 x 0"},
+
+        # NOVORIZONTINO
+        {"mandante": "Novorizontino", "visitante": "Portuguesa", "placar": "0 x 0"},
+        {"mandante": "Novorizontino", "visitante": "Red Bull Bragantino", "placar": "0 x 0"},
+        {"mandante": "Novorizontino", "visitante": "Capivariano", "placar": "0 x 0"},
+        {"mandante": "Novorizontino", "visitante": "Botafogo-SP", "placar": "0 x 0"},
+        {"mandante": "Novorizontino", "visitante": "São Bernardo", "placar": "0 x 0"},
+        {"mandante": "Novorizontino", "visitante": "Juventus", "placar": "0 x 0"},
+
+        # PORTUGUESA
         {"mandante": "Portuguesa", "visitante": "Red Bull Bragantino", "placar": "0 x 0"},
-        {"mandante": "Mirassol", "visitante": "São Bernardo", "placar": "0 x 0"},
+        {"mandante": "Portuguesa", "visitante": "Capivariano", "placar": "0 x 0"},
+        {"mandante": "Portuguesa", "visitante": "Mirassol", "placar": "0 x 0"},
+        {"mandante": "Portuguesa", "visitante": "Juventus", "placar": "0 x 0"},
+        {"mandante": "Portuguesa", "visitante": "Ferroviária", "placar": "0 x 0"},
+
+        # RED BULL BRAGANTINO
+        {"mandante": "Red Bull Bragantino", "visitante": "Capivariano", "placar": "0 x 0"},
+        {"mandante": "Red Bull Bragantino", "visitante": "Guarani", "placar": "0 x 0"},
+        {"mandante": "Red Bull Bragantino", "visitante": "Ferroviária", "placar": "0 x 0"},
+        {"mandante": "Red Bull Bragantino", "visitante": "Noroeste", "placar": "0 x 0"},
+
+        # CAPIVARIANO
+        {"mandante": "Capivariano", "visitante": "Primavera", "placar": "0 x 0"},
+        {"mandante": "Capivariano", "visitante": "São Bernardo", "placar": "0 x 0"},
+        {"mandante": "Capivariano", "visitante": "Noroeste", "placar": "0 x 0"},
+
+        # BOTAFOGO-SP
+        {"mandante": "Botafogo-SP", "visitante": "Mirassol", "placar": "0 x 0"},
+        {"mandante": "Botafogo-SP", "visitante": "Guarani", "placar": "0 x 0"},
+        {"mandante": "Botafogo-SP", "visitante": "Primavera", "placar": "0 x 0"},
+        {"mandante": "Botafogo-SP", "visitante": "São Bernardo", "placar": "0 x 0"},
+        {"mandante": "Botafogo-SP", "visitante": "Juventus", "placar": "0 x 0"},
+
+        # MIRASSOL
+        {"mandante": "Mirassol", "visitante": "Guarani", "placar": "0 x 0"},
+        {"mandante": "Mirassol", "visitante": "Primavera", "placar": "0 x 0"},
+        {"mandante": "Mirassol", "visitante": "Juventus", "placar": "0 x 0"},
+        {"mandante": "Mirassol", "visitante": "Ferroviária", "placar": "0 x 0"},
+
+        # GUARANI
+        {"mandante": "Guarani", "visitante": "Primavera", "placar": "0 x 0"},
+        {"mandante": "Guarani", "visitante": "Ferroviária", "placar": "0 x 0"},
+        {"mandante": "Guarani", "visitante": "Noroeste", "placar": "0 x 0"},
+
+        # PRIMAVERA
+        {"mandante": "Primavera", "visitante": "São Bernardo", "placar": "0 x 0"},
+        {"mandante": "Primavera", "visitante": "Noroeste", "placar": "0 x 0"},
+
+        # SÃO BERNARDO
+        {"mandante": "São Bernardo", "visitante": "Juventus", "placar": "0 x 0"},
+        {"mandante": "São Bernardo", "visitante": "Ferroviária", "placar": "0 x 0"},
+        {"mandante": "São Bernardo", "visitante": "Noroeste", "placar": "0 x 0"},
+
+        # JUVENTUS
+        {"mandante": "Juventus", "visitante": "Ferroviária", "placar": "0 x 0"},
+        {"mandante": "Juventus", "visitante": "Noroeste", "placar": "0 x 0"},
+
+        # FERROVIÁRIA
+        {"mandante": "Ferroviária", "visitante": "Noroeste", "placar": "0 x 0"}
     ]
     
     partidas_enriquecidas = []
